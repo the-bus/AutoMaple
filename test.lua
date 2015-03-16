@@ -1,20 +1,36 @@
+--Sample bot for Mysterious Path 3 (works on my Angelic Buster)
+
 HookMove()
-SetMoveXOff(20)
-SetMoveDelay(300)
+SetMoveXOff(25)
+SetMoveDelay(400)
 SetFaceDelay(100)
+function AttackWait()
+	KeyHoldFor(0x11, 10000)
+	Wait(1000)
+end
+function JumpWait()
+	KeyPress(0x12) --alt jump
+	Wait(300)
+end
 while true do
 	MoveX(17)
 	KeyPress(0x12) --alt jump
 	Rope(-1) --going up
 	MoveX(285)
-	KeyPress(0x12)
-	Wait(300)
+	JumpWait()
 	FaceLeft()
-	KeyHoldFor(0x12, 1000)
-	Wait(1000)
+	AttackWait()
+	MoveX(379)
+	KeyPress(0x12)
+	Rope(-1)
+	MoveX(855)
+	JumpWait()
+	FaceLeft()
+	AttackWait()
+	MoveX(1013)
+	Rope(1) --going down
 	MoveX(700)
-	KeyHoldFor(0x12, 1000)
-	Wait(1000)
+	AttackWait()
 end
 
 

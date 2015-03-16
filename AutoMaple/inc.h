@@ -77,7 +77,12 @@ extern HANDLE hThread;
 #define deref(addy, type, bad) IsBadReadPtr((void*)addy, sizeof(type)) ? bad : *(type *) addy
 
 //functions
+
+//utils
 int32_t MsgBox(PSTR sz, ...);
-void initLua();
 uint32_t VKtoMS(uint32_t key);
+HWND WINAPI FindProcessWindow(__in_z LPCSTR lpcszWindowClass, __in DWORD dwProcessId);
+
+//etc
+void initLua();
 void Close();

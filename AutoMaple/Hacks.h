@@ -8,6 +8,8 @@ public:
 	static void KeyDown(int32_t);
 	static void KeyUp(int32_t);
 	static void KeyPress(int32_t);
+	static void KeySpam(int32_t);
+	static void KeyUnSpam(int32_t);
 	static void EnableAutoPortal();
 	static void DisableAutoPortal();
 	static void Teleport(int32_t, int32_t);
@@ -26,7 +28,8 @@ public:
 	static void MoveX(int32_t);
 	static void MoveXOff(int32_t, int32_t);
 	static void SetMoveXOff(int32_t);
-	static void Hacks::Rope(int32_t);
+	static void SetRopePollDelay(int32_t);
+	static void Rope(int32_t);
 	static void SetFaceDelay(int32_t);
 	static void FaceLeft();
 	static void FaceRight();

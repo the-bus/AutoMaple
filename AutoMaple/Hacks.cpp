@@ -16,6 +16,12 @@ uint32_t sOeax; //used by SP to store eax
 #define kLen 0x100
 uint8_t pressKeys[kLen] = { 0 };
 uint8_t holdKeys[kLen] = { 0 };
+void Hacks::KeySpam(int32_t k) {
+	pressKeys[k] = 2;
+}
+void Hacks::KeyUnSpam(int32_t k) {
+	pressKeys[k] = 0;
+}
 void Hacks::KeyPress(int32_t k)
 {
 	pressKeys[k] = 1;
@@ -222,12 +228,16 @@ void Hacks::MoveXOff(int32_t targetX, int32_t off) {
 void Hacks::MoveX(int32_t targetX) {
 	MoveXOff(targetX, Xoff);
 }
+int32_t RopePollDelay;
+void Hacks::SetRopePollDelay(int32_t delay) {
+	RopePollDelay = delay;
+}
 void Hacks::Rope(int32_t dir) {
 	SetMove(0, dir);
 	int32_t oY; //original y
 	do {
 		oY = Y;
-		Sleep(100);
+		Sleep(RopePollDelay);
 	} while (Y != oY);
 }
 int32_t FaceDelay;
@@ -273,11 +283,12 @@ void __stdcall SendKeys() {
 			SendKey(i, MS_UP);
 			holdKeys[i] = 0;
 		}
-		else if (pressKeys[i] == 1) {
+		else if (pressKeys[i] != 0) {
 			SendKey(i, MS_DOWN);
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
-			pressKeys[i] = 0;
+			if (pressKeys[i] == 1)
+				pressKeys[i] = 0;
 		}
 	}
 }

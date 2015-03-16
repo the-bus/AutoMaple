@@ -5,8 +5,9 @@ lua_State* L = NULL;
 
 void KeyPressNoHook(int32_t key)
 {
-	PostMessage(FindWindow("MapleStoryClass", 0), WM_KEYDOWN, key, VKtoMS(key));
-	PostMessage(FindWindow("MapleStoryClass", 0), WM_KEYUP, key, VKtoMS(key));
+	HWND MShwnd = FindProcessWindow("MapleStoryClass", GetCurrentProcessId());
+	PostMessage(MShwnd, WM_KEYDOWN, key, VKtoMS(key));
+	PostMessage(MShwnd, WM_KEYUP, key, VKtoMS(key));
 }
 
 void PopupInt(int32_t a) {
@@ -17,69 +18,83 @@ void PopupInt(int32_t a) {
 
 #define valas(type) type val = (type)
 
-#define rawwrap(name, func, in, ret, ...) \
-static int name(lua_State *L) { \
+#define rawlambdawrap(func, in, ret, ...) \
+[](lua_State *L) { \
 	in space::func(__VA_ARGS__); \
 	ret; \
 	return 0; \
 }
 
-#define rawsamewrap(func, in, ret, ...) rawwrap(func, func, in, ret, __VA_ARGS__)
+#define rawelementwrap(func, name, in, ret, ...) { name, rawlambdawrap(func, in, ret, __VA_ARGS__) },
+
+#define wrap(func, name, ...) rawelementwrap(func, name, ;, ;, __VA_ARGS__)
+#define wrapRet(func, name, type, ret, ...) rawelementwrap(func, name, valas(type), ret, __VA_ARGS__)
+
+#define rawsamewrap(func, in, ret, ...) rawelementwrap(func, STRINGIFY(func), in, ret, __VA_ARGS__)
 #define samewrap(func, ...) rawsamewrap(func, ;, ;, __VA_ARGS__)
 #define samewrapRet(func, type, ret, ...) rawsamewrap(func, valas(type), ret, __VA_ARGS__)
+
+
 
 #define integer(n) lua_tointeger(L, n)
 
 ///////////////////////////////////////
 
-#undef space
-#define space Hacks
-samewrap(EnableAutoPortal)
-samewrap(DisableAutoPortal)
+static const luaL_Reg mapleLib[] = {
+	
+	#undef space
+	#define space Hacks
+		samewrap(EnableAutoPortal)
+		samewrap(DisableAutoPortal)
+		samewrap(HookSP)
+		samewrap(UnHookSP)
 
-samewrap(HookSP)
-samewrap(UnHookSP)
+		samewrap(KeyUp, integer(1))
+		samewrap(KeyDown, integer(1))
+		samewrap(KeyPress, integer(1))
+		samewrap(KeySpam, integer(1))
+		samewrap(KeyUnSpam, integer(1))
 
-samewrap(KeyUp, integer(1))
-samewrap(KeyDown, integer(1))
-samewrap(KeyPress, integer(1))
+		samewrap(Teleport, integer(1), integer(2))
+		samewrap(SetSP, integer(1), integer(2))
+		samewrapRet(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
 
-samewrap(Teleport, integer(1), integer(2))
-samewrap(SetSP, integer(1), integer(2))
-samewrapRet(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
+		samewrap(HookMove)
+		samewrap(UnHookMove)
+		samewrap(SetMove, integer(1), integer(2))
 
-samewrap(HookMove)
-samewrap(UnHookMove)
-samewrap(SetMove, integer(1), integer(2))
+		samewrapRet(GetX, int32_t, lua_pushinteger(L, val); return 1;)
+		samewrapRet(GetY, int32_t, lua_pushinteger(L, val); return 1;)
+		samewrap(WaitForBreath)
 
-samewrapRet(GetX, int32_t, lua_pushinteger(L, val); return 1;)
-samewrapRet(GetY, int32_t, lua_pushinteger(L, val); return 1;)
-samewrap(WaitForBreath)
+		samewrap(ResetKeys)
+		samewrap(MoveX, integer(1))
+		samewrap(MoveXOff, integer(1), integer(2))
+		samewrap(SetMoveXOff, integer(1))
+		samewrap(SetMoveDelay, integer(1))
 
-samewrap(ResetKeys)
-samewrap(MoveX, integer(1))
-samewrap(MoveXOff, integer(1), integer(2))
-samewrap(SetMoveXOff, integer(1))
-samewrap(SetMoveDelay, integer(1))
+		samewrap(SetRopePollDelay, integer(1))
+		samewrap(Rope, integer(1))
 
-samewrap(Rope, integer(1))
+		samewrap(SetFaceDelay, integer(1))
+		samewrap(FaceLeft)
+		samewrap(FaceRight)
 
-samewrap(SetFaceDelay, integer(1))
-samewrap(FaceLeft)
-samewrap(FaceRight)
+		samewrap(KeyHoldFor, integer(1), integer(2))
 
-samewrap(KeyHoldFor, integer(1), integer(2))
+	#undef space
+	#define space 
+		samewrap(Sleep, integer(1))
+		wrap(Sleep, "Wait", integer(1))
 
-#undef space
-#define space 
-samewrap(Sleep, integer(1))
-samewrap(KeyPressNoHook, integer(1))
-samewrap(PopupInt, integer(1))
+		samewrap(KeyPressNoHook, integer(1))
+		samewrap(PopupInt, integer(1))
+
+	{ NULL, NULL }
+};
 
 ///////////////////////////////////////
 
-#define regfuncas(func, name, ...) lua_register(L, name, func);
-#define regfunc(func, ...) regfuncas(func, STRINGIFY(func), __VA_ARGS__)
 void initLua() {
 
 	/* initialize Lua */
@@ -87,57 +102,10 @@ void initLua() {
 
 	/* load Lua base libraries */
 	luaL_openlibs(L);
+	luaL_newlib(L, mapleLib);
+	lua_setglobal(L, "maple");
 
-	/* register our functions */
-///////////////////////////////////////
-
-#undef space
-#define space Hacks
-regfunc(EnableAutoPortal)
-regfunc(DisableAutoPortal)
-
-regfunc(HookSP)
-regfunc(UnHookSP)
-
-regfunc(KeyUp, integer(1))
-regfunc(KeyDown, integer(1))
-regfunc(KeyPress, integer(1))
-
-regfunc(Teleport, integer(1), integer(2))
-regfunc(SetSP, integer(1), integer(2))
-regfunc(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
-
-regfunc(HookMove)
-regfunc(UnHookMove)
-regfunc(SetMove, integer(1), integer(2))
-
-regfunc(GetX, int32_t, lua_pushinteger(L, val); return 1;)
-regfunc(GetY, int32_t, lua_pushinteger(L, val); return 1;)
-regfunc(WaitForBreath)
-
-regfunc(ResetKeys)
-regfunc(MoveX, integer(1))
-regfunc(MoveXOff, integer(1), integer(2))
-regfunc(SetMoveXOff, integer(1))
-regfunc(SetMoveDelay, integer(1))
-
-regfunc(Rope, integer(1))
-
-regfunc(SetFaceDelay, integer(1))
-regfunc(FaceLeft)
-regfunc(FaceRight)
-
-regfunc(KeyHoldFor, integer(1), integer(2))
-
-#undef space
-#define space 
-regfunc(Sleep, integer(1))
-regfunc(KeyPressNoHook, integer(1))
-regfunc(PopupInt, integer(1))
-
-regfuncas(Sleep, "Wait")
-///////////////////////////////////////
-		/* run the script */
+	/* run the script */
 	char file[] = "\\test.lua";
 	char buf[32768];
 	GetModuleFileName(NULL, buf, 32768);

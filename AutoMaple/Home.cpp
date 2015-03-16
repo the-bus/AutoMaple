@@ -22,7 +22,7 @@ void end() {
 	Hacks::UnHookMove();
 	Hacks::UnHookSP();
 	Hacks::ResetKeys();
-	Hacks::SetMoveXOff(0);
+	Hacks::SetMove(0, 0);
 	setDefaults();
 }
 void clean() {

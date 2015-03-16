@@ -1,3 +1,33 @@
+HookMove()
+SetMoveXOff(20)
+SetMoveDelay(300)
+SetFaceDelay(100)
+while true do
+	MoveX(17)
+	KeyPress(0x12) --alt jump
+	Rope(-1) --going up
+	MoveX(285)
+	KeyPress(0x12)
+	Wait(300)
+	FaceLeft()
+	KeyHoldFor(0x12, 1000)
+	Wait(1000)
+	MoveX(700)
+	KeyHoldFor(0x12, 1000)
+	Wait(1000)
+end
+
+
+
+
+
+
+
+
+
+
+
+--not used
 CSTele = function (x, y)
 	HookSP()
 	WaitForBreath()
@@ -20,24 +50,4 @@ CSTele = function (x, y)
 	end
 	Wait(500)
 	UnHookSP()
-end
-
-AttackAndLootFor = function (duration)
-	KeyDown(0x11) --ctrl
-	KeyDown(0x5A) --Z
-	Wait(duration)
-	KeyUp(0x5A)
-	KeyUp(0x11)
-end
-
-UpRope = function ()
-	HookMove()
-	SetMove(0, -1)
-	oY = GetY()
-	Wait(100)
-	while GetY() ~= oY do
-		oY = GetY()
-		Wait(100)
-	end
-	UnHookMove()
 end

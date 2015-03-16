@@ -16,18 +16,18 @@ uint32_t sOeax; //used by SP to store eax
 #define kLen 0x100
 uint8_t pressKeys[kLen] = { 0 };
 uint8_t holdKeys[kLen] = { 0 };
-void Hacks::KeyPress(uint32_t k)
+void Hacks::KeyPress(int32_t k)
 {
 	pressKeys[k] = 1;
 	while (pressKeys[k] != 0)
 		Sleep(0);
 	return;
 }
-void Hacks::KeyDown(uint32_t k)
+void Hacks::KeyDown(int32_t k)
 {
 	holdKeys[k] = 1;
 }
-void Hacks::KeyUp(uint32_t k)
+void Hacks::KeyUp(int32_t k)
 {
 	holdKeys[k] = 2;
 	while (pressKeys[k] != 0)
@@ -141,7 +141,7 @@ int32_t Hacks::GetY() {
 	WaitForFetch();
 	return Y;
 }
-uint32_t Hacks::GetMapID() {
+int32_t Hacks::GetMapID() {
 	WaitForFetch();
 	return MID;
 }
@@ -183,9 +183,71 @@ void Hacks::UnHookMove() {
 	byte orig2[] = {0x89,0x7C,0x24,0x20,0x89,0x7C,0x24,0x1C};
 	Memory::Write((void*)MoveJmp, &orig2, 8);
 }
+void Hacks::ResetKeys() {
+	for (uint32_t i = 0; i < kLen; i++) {
+		if (holdKeys[i] == 1)
+			Hacks::KeyUp(i);
+		pressKeys[i] = 0;
+	}
+}
 void Hacks::SetMove(int32_t x, int32_t y) {
-	mX = x;
-	mY = y;
+	if (!(x < -1 || x > 1))
+		mX = x;
+	if (!(y < -1 || y > 1))
+		mY = y;
+}
+int32_t Xoff;
+int32_t MoveDelay;
+void Hacks::SetMoveDelay(int32_t delay) {
+	MoveDelay = delay;
+}
+void Hacks::SetMoveXOff(int32_t off) {
+	Xoff = off;
+}
+void Hacks::MoveXOff(int32_t targetX, int32_t off) {
+	bool right = targetX > X;
+	if (right) {
+		Hacks::SetMove(1, 0);
+		while (targetX - off > X)
+			Sleep(0);
+	}
+	else {
+		Hacks::SetMove(-1, 0);
+		while (targetX + off < X)
+			Sleep(0);
+	}
+	Hacks::SetMove(0, 0);
+	Sleep(MoveDelay);
+}
+void Hacks::MoveX(int32_t targetX) {
+	MoveXOff(targetX, Xoff);
+}
+void Hacks::Rope(int32_t dir) {
+	SetMove(0, dir);
+	int32_t oY; //original y
+	do {
+		oY = Y;
+		Sleep(100);
+	} while (Y != oY);
+}
+int32_t FaceDelay;
+void Hacks::SetFaceDelay(int32_t delay) {
+	FaceDelay = delay;
+}
+void Hacks::FaceLeft() {
+	SetMove(-1, 0);
+	Sleep(FaceDelay);
+	SetMove(0, 0);
+}
+void Hacks::FaceRight() {
+	SetMove(1, 0);
+	Sleep(FaceDelay);
+	SetMove(0, 0);
+}
+void Hacks::KeyHoldFor(int32_t k, int32_t delay) {
+	Hacks::KeyDown(k);
+	Sleep(delay);
+	Hacks::KeyUp(k);
 }
 void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 	uint32_t Key = VKtoMS(VK) | mask;
@@ -237,7 +299,7 @@ __declspec(naked) void __stdcall FrameCave() {
 void Hacks::HookFrame() {
 	MsgBox("%x", (unsigned int)MoveCave);
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
-	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
+	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "PeekMessageA") + 0x0);
 	fRet = (unsigned long)dispatchAddy+5;
 	byte opcode = 0xE9;
 	Memory::Write(dispatchAddy, &opcode, 1);

@@ -14,15 +14,27 @@ void Main(void)
 	GUIWork(); // create new instance of managed application
 }
 HANDLE h = NULL;
+void setDefaults() {
+
+}
+void end() {
+	Hacks::DisableAutoPortal();
+	Hacks::UnHookMove();
+	Hacks::UnHookSP();
+	Hacks::ResetKeys();
+	Hacks::SetMoveXOff(0);
+	setDefaults();
+}
 void clean() {
-	if (L != NULL) {
-		lua_close(L);
-		L = NULL;
-	}
 	if(h != NULL) {
 		CloseThread(h);
 		h = NULL;
 	}
+	if (L != NULL) {
+		lua_close(L);
+		L = NULL;
+	}
+	end();
 }
 System::Void Home::button1_Click(System::Object^  sender, System::EventArgs^  e) {
 	clean();

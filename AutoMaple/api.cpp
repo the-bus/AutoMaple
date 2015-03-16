@@ -3,7 +3,7 @@
 /* the Lua interpreter */
 lua_State* L = NULL;
 
-void KeyPressNoHook(uint32_t key)
+void KeyPressNoHook(int32_t key)
 {
 	PostMessage(FindWindow("MapleStoryClass", 0), WM_KEYDOWN, key, VKtoMS(key));
 	PostMessage(FindWindow("MapleStoryClass", 0), WM_KEYUP, key, VKtoMS(key));
@@ -19,16 +19,14 @@ void PopupInt(int32_t a) {
 
 #define rawwrap(name, func, in, ret, ...) \
 static int name(lua_State *L) { \
-	in func(__VA_ARGS__); \
+	in space::func(__VA_ARGS__); \
 	ret; \
 	return 0; \
 }
 
-#define wrap(func, in, ret, ...) rawwrap(func, space::func, in, ret, __VA_ARGS__)
-#define FwrapT(func, ret, ...) wrap(func, ;, ret, __VA_ARGS__)
-#define FwrapF(func, ...) FwrapT(func, ;, __VA_ARGS__)
-#define TwrapT(func, type, ret, ...) wrap(func, valas(type), ret, __VA_ARGS__)
-#define TwrapF(func, type, ...) TwrapT(func, type, ;, __VA_ARGS__)
+#define rawsamewrap(func, in, ret, ...) rawwrap(func, func, in, ret, __VA_ARGS__)
+#define samewrap(func, ...) rawsamewrap(func, ;, ;, __VA_ARGS__)
+#define samewrapRet(func, type, ret, ...) rawsamewrap(func, valas(type), ret, __VA_ARGS__)
 
 #define integer(n) lua_tointeger(L, n)
 
@@ -36,33 +34,47 @@ static int name(lua_State *L) { \
 
 #undef space
 #define space Hacks
-FwrapF(EnableAutoPortal)
-FwrapF(DisableAutoPortal)
+samewrap(EnableAutoPortal)
+samewrap(DisableAutoPortal)
 
-FwrapF(HookSP)
-FwrapF(UnHookSP)
+samewrap(HookSP)
+samewrap(UnHookSP)
 
-FwrapF(KeyUp, integer(1))
-FwrapF(KeyDown, integer(1))
-FwrapF(KeyPress, integer(1))
+samewrap(KeyUp, integer(1))
+samewrap(KeyDown, integer(1))
+samewrap(KeyPress, integer(1))
 
-FwrapF(Teleport, integer(1), integer(2))
-FwrapF(SetSP, integer(1), integer(2))
-TwrapT(GetMapID, uint32_t, lua_pushinteger(L, val); return 1;)
+samewrap(Teleport, integer(1), integer(2))
+samewrap(SetSP, integer(1), integer(2))
+samewrapRet(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
 
-FwrapF(HookMove)
-FwrapF(UnHookMove)
-FwrapF(SetMove, integer(1), integer(2))
+samewrap(HookMove)
+samewrap(UnHookMove)
+samewrap(SetMove, integer(1), integer(2))
 
-TwrapT(GetX, int32_t, lua_pushinteger(L, val); return 1;)
-TwrapT(GetY, int32_t, lua_pushinteger(L, val); return 1;)
-FwrapF(WaitForBreath)
+samewrapRet(GetX, int32_t, lua_pushinteger(L, val); return 1;)
+samewrapRet(GetY, int32_t, lua_pushinteger(L, val); return 1;)
+samewrap(WaitForBreath)
+
+samewrap(ResetKeys)
+samewrap(MoveX, integer(1))
+samewrap(MoveXOff, integer(1), integer(2))
+samewrap(SetMoveXOff, integer(1))
+samewrap(SetMoveDelay, integer(1))
+
+samewrap(Rope, integer(1))
+
+samewrap(SetFaceDelay, integer(1))
+samewrap(FaceLeft)
+samewrap(FaceRight)
+
+samewrap(KeyHoldFor, integer(1), integer(2))
 
 #undef space
 #define space 
-FwrapF(Sleep, integer(1))
-FwrapF(KeyPressNoHook, integer(1))
-FwrapF(PopupInt, integer(1))
+samewrap(Sleep, integer(1))
+samewrap(KeyPressNoHook, integer(1))
+samewrap(PopupInt, integer(1))
 
 ///////////////////////////////////////
 
@@ -93,7 +105,7 @@ regfunc(KeyPress, integer(1))
 
 regfunc(Teleport, integer(1), integer(2))
 regfunc(SetSP, integer(1), integer(2))
-regfunc(GetMapID, uint32_t, lua_pushinteger(L, val); return 1;)
+regfunc(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
 
 regfunc(HookMove)
 regfunc(UnHookMove)
@@ -102,6 +114,20 @@ regfunc(SetMove, integer(1), integer(2))
 regfunc(GetX, int32_t, lua_pushinteger(L, val); return 1;)
 regfunc(GetY, int32_t, lua_pushinteger(L, val); return 1;)
 regfunc(WaitForBreath)
+
+regfunc(ResetKeys)
+regfunc(MoveX, integer(1))
+regfunc(MoveXOff, integer(1), integer(2))
+regfunc(SetMoveXOff, integer(1))
+regfunc(SetMoveDelay, integer(1))
+
+regfunc(Rope, integer(1))
+
+regfunc(SetFaceDelay, integer(1))
+regfunc(FaceLeft)
+regfunc(FaceRight)
+
+regfunc(KeyHoldFor, integer(1), integer(2))
 
 #undef space
 #define space 

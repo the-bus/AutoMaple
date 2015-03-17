@@ -4,7 +4,7 @@ maple.HookMove()
 maple.SetMoveXOff(30)
 maple.SetMoveDelay(400)
 maple.SetFaceDelay(100)
-maple.SetRopePollDelay(400)
+--maple.SetRopePollDelay(400) --not needed when using RopeY
 function AttackWait()
 	maple.KeyHoldFor(0x11, 10000)
 	maple.Wait(1000)
@@ -13,25 +13,32 @@ function JumpWait()
 	maple.KeyPress(0x12) --alt jump
 	maple.Wait(300)
 end
-maple.KeySpam(0x5A) --z key
 while true do
+maple.KeySpam(0x5A)
 	maple.MoveX(17)
-	maple.KeyPress(0x12) --alt jump
-	maple.Rope(-1) --going up
+	maple.KeyDown(0x12)
+	maple.RopeY(-193) --going up
+	maple.KeyUp(0x12)
 	maple.MoveX(285)
 	JumpWait()
 	maple.FaceLeft()
+maple.KeyUnSpam(0x5A)
 	AttackWait()
+maple.KeySpam(0x5A)
 	maple.MoveX(379)
-	maple.KeyPress(0x12)
-	maple.Rope(-1)
+	maple.KeyDown(0x12)
+	maple.RopeY(-553)
+	maple.KeyUp(0x12)
 	maple.MoveX(855)
 	JumpWait()
 	maple.FaceLeft()
+maple.KeyUnSpam(0x5A)
 	AttackWait()
+maple.KeySpam(0x5A)
 	maple.MoveX(1013)
-	maple.Rope(1) --going down
+	maple.RopeY(-253) --going down
 	maple.MoveX(700)
+maple.KeyUnSpam(0x5A)
 	AttackWait()
 end
 
@@ -46,7 +53,17 @@ end
 
 
 --not used
-CSTele = function (x, y)
+function GetMobsOnPlatform(y)
+	mobs = maple.GetMobs()
+	Count = 0
+	for k, val in pairs(mobs) do
+		if val.y == y then
+			Count = Count + 1
+		end
+	end
+	return Count
+end
+function CSTele(x, y)
 	HookSP()
 	WaitForBreath()
 	Wait(500)

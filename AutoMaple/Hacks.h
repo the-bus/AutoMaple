@@ -20,8 +20,6 @@ public:
 	static void HookMove();
 	static void UnHookMove();
 	static void SetMove(int32_t, int32_t);
-	static int32_t GetX();
-	static int32_t GetY();
 	static void WaitForBreath();
 	static void ResetKeys();
 	static void SetMoveDelay(int32_t);
@@ -30,9 +28,14 @@ public:
 	static void SetMoveXOff(int32_t);
 	static void SetRopePollDelay(int32_t);
 	static void Rope(int32_t);
+	static void RopeY(int32_t);
 	static void SetFaceDelay(int32_t);
 	static void FaceLeft();
 	static void FaceRight();
 	static void KeyHoldFor(int32_t, int32_t);
+	static int32_t GetMobCount();
+	static POINT GetMobClosest();
+	static POINT GetChar();
+	static POINT * GetMobs();
 
 };

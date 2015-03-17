@@ -15,6 +15,7 @@
 #include <iterator>
 #include <map>
 #include <unordered_map>
+#include <chrono>
 
 //libs
 #pragma comment(lib, "Shlwapi.lib")
@@ -29,6 +30,16 @@
 #pragma warning(disable: 4244)
 
 //constants
+#define ServerBase 0x01E26B10
+#define MobBase 0x01E2B1E4
+#define MobCountOff 0x00000010
+#define Mob1Off 0x00000028
+#define Mob2Off 0x00000004
+#define Mob3Off 0x000001CC
+#define Mob4Off 0x00000024
+#define MobXOff 0x00000058
+#define MobYOff (MobXOff + 4)
+#define MobDeathOff 0x00000580
 #define MapInfo (unsigned long)0x01E2B910
 #define MapIDOff (unsigned long)0x13e4
 #define AutoPortal (void*)0x014E4EDA
@@ -74,7 +85,7 @@ extern HANDLE hThread;
 #define CloseThread(Handle) TerminateThread(Handle, 0);
 #define STRINGIFY(x) #x
 #define Message(ach) MessageBox(NULL, ach, "", MB_OK|MB_ICONEXCLAMATION)
-#define deref(addy, type, bad) IsBadReadPtr((void*)addy, sizeof(type)) ? bad : *(type *) addy
+#define deref(addy, type, bad) IsBadReadPtr((void*)(addy), sizeof(type)) ? bad : *(type *)(addy)
 
 //functions
 

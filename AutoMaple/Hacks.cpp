@@ -103,12 +103,11 @@ void Hacks::SetSP(int x, int y) {
 	sX = x;
 	sY = y;
 }
-int32_t X = 0;
-int32_t Y = 0;
+POINT Char;
 uint32_t MID = 0;
 uint32_t Breath;
 void __stdcall FetchChar() {
-	X =
+	Char.x =
 		round(
 			deref(
 				(Memory::Pointer::read_int(CharBase, CharVec) + VecX),
@@ -116,7 +115,7 @@ void __stdcall FetchChar() {
 				2147483647
 			)
 		);
-	Y =
+	Char.y =
 		round(
 			deref(
 				(Memory::Pointer::read_int(CharBase, CharVec) + VecY),
@@ -129,27 +128,99 @@ void __stdcall FetchChar() {
 void __stdcall FetchMap() {
 	MID = Memory::Pointer::read_int(MapInfo, MapIDOff);
 }
+int32_t MobCount = 0;
+POINT MobClosest;
+POINT * Mobs;
+uint8_t RefreshMobs = 0;
+void __stdcall FetchMob() {
+	POINT closest = { 2147483647 };
+	long area = 9999999;
+	// mob base
+	uint32_t mob = deref(MobBase, uint32_t, 0);
+	if (!mob) {
+		MobClosest = closest;
+		return;
+	}
+	// mob count
+	MobCount = deref(mob + MobCountOff, int32_t, 0);
+	if (!MobCount) {
+		MobClosest = closest;
+		return;
+	}
+	// mob off1
+	mob = deref(mob + Mob1Off, uint32_t, 0);
+	if (!mob) {
+		MobClosest = closest;
+		return;
+	}
+	mob -= 0x10; // first mob
+	if (RefreshMobs != 0)
+		Mobs = new POINT [MobCount];
+	int i = 0;
+	while (mob) {
+		uint32_t data = deref(mob + Mob2Off + 0x10, uint32_t, 0); // MobData1
+		if (!data)
+			return;
+		data = deref(data + Mob3Off, uint32_t, 0); // MobData2
+		if (!data)
+			return;
+		data = deref(data + Mob4Off, uint32_t, 0); // MobData3
+		if (!data)
+			return;
+		POINT pos = *(POINT *)(data + MobXOff);
+		POINT inv = *(POINT *)(data + MobXOff + sizeof(POINT));
+		if (inv.x || inv.y) {
+			POINT diff;
+			diff.x = pos.x - Char.x;
+			diff.y = pos.y - Char.y;
+			long curarea = diff.x * diff.x + diff.y * diff.y;
+			if (curarea < area) {
+				area = curarea;
+				closest = pos;
+			}
+			if (RefreshMobs != 0)
+				Mobs[i] = POINT{ pos.x, pos.y };
+			i++;
+		}
+		mob = deref(mob + Mob2Off, uint32_t, 0); // next
+	}
+	MobCount = i;
+	RefreshMobs = 0;
+	MobClosest = closest;
+}
 void __stdcall FetchAll() {
 	doneFetch = 0;
 	FetchChar();
 	FetchMap();
+	FetchMob();
 	doneFetch = 1;
 }
 void WaitForFetch() {
 	while (doneFetch == 0)
 		Sleep(0);
 }
-int32_t Hacks::GetX() {
+POINT * Hacks::GetMobs() {
 	WaitForFetch();
-	return X;
+	RefreshMobs = 1;
+	while (RefreshMobs != 0)
+		Sleep(0);
+	return Mobs;
 }
-int32_t Hacks::GetY() {
+POINT Hacks::GetChar() {
 	WaitForFetch();
-	return Y;
+	return Char;
 }
 int32_t Hacks::GetMapID() {
 	WaitForFetch();
 	return MID;
+}
+int32_t Hacks::GetMobCount() {
+	WaitForFetch();
+	return MobCount;
+}
+POINT Hacks::GetMobClosest() {
+	WaitForFetch();
+	return MobClosest;
 }
 void Hacks::WaitForBreath() {
 	while (true) {
@@ -192,7 +263,7 @@ void Hacks::UnHookMove() {
 void Hacks::ResetKeys() {
 	for (uint32_t i = 0; i < kLen; i++) {
 		if (holdKeys[i] == 1)
-			Hacks::KeyUp(i);
+			KeyUp(i);
 		pressKeys[i] = 0;
 	}
 }
@@ -211,19 +282,25 @@ void Hacks::SetMoveXOff(int32_t off) {
 	Xoff = off;
 }
 void Hacks::MoveXOff(int32_t targetX, int32_t off) {
-	bool right = targetX > X;
+	bool right = targetX > GetChar().x;
 	if (right) {
-		Hacks::SetMove(1, 0);
-		while (targetX - off > X)
+		SetMove(1, 0);
+		while (targetX - off > GetChar().x)
 			Sleep(0);
 	}
 	else {
-		Hacks::SetMove(-1, 0);
-		while (targetX + off < X)
+		SetMove(-1, 0);
+		while (targetX + off < GetChar().x)
 			Sleep(0);
 	}
-	Hacks::SetMove(0, 0);
-	Sleep(MoveDelay);
+	//int32_t dist = GetChar().x - targetX;
+	//dist = dist < 0 ? -dist : dist;
+	//if (dist > 10)
+	//MoveXOff(targetX, off);
+	//else {
+		SetMove(0, 0);
+		Sleep(MoveDelay);
+	//}
 }
 void Hacks::MoveX(int32_t targetX) {
 	MoveXOff(targetX, Xoff);
@@ -236,9 +313,24 @@ void Hacks::Rope(int32_t dir) {
 	SetMove(0, dir);
 	int32_t oY; //original y
 	do {
-		oY = Y;
+		oY = GetChar().y;
 		Sleep(RopePollDelay);
-	} while (Y != oY);
+	} while (GetChar().y != oY);
+	SetMove(0, 0);
+}
+void Hacks::RopeY(int32_t targetY) {
+	bool down = targetY > GetChar().y;
+	if (down) {
+		SetMove(0, 1);
+		while (targetY > GetChar().y)
+			Sleep(0);
+	}
+	else {
+		SetMove(0, -1);
+		while (targetY < GetChar().y)
+			Sleep(0);
+	}
+	SetMove(0, 0);
 }
 int32_t FaceDelay;
 void Hacks::SetFaceDelay(int32_t delay) {
@@ -255,15 +347,15 @@ void Hacks::FaceRight() {
 	SetMove(0, 0);
 }
 void Hacks::KeyHoldFor(int32_t k, int32_t delay) {
-	Hacks::KeyDown(k);
+	KeyDown(k);
 	Sleep(delay);
-	Hacks::KeyUp(k);
+	KeyUp(k);
 }
 void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 	uint32_t Key = VKtoMS(VK) | mask;
 	__asm {
 		mov fOesi, esi
-		mov esi, [0x01E26B10] // Server Base (TSingleton<CWvsContext>)
+		mov esi, [ServerBase] // Server Base (TSingleton<CWvsContext>)
 		mov ecx, [esi + 0xA4] // Window manager offset
 		push Key // 2nd parameter: key code for CTRL
 		push VK // 1st parameter: Apparently unused parameter that seems to be related to the type of key that is being pressed. You can just set it to zero
@@ -308,7 +400,6 @@ __declspec(naked) void __stdcall FrameCave() {
 	}
 }
 void Hacks::HookFrame() {
-	MsgBox("%x", (unsigned int)MoveCave);
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
 	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "PeekMessageA") + 0x0);
 	fRet = (unsigned long)dispatchAddy+5;

@@ -14,6 +14,24 @@ void PopupInt(int32_t a) {
 	MsgBox("%d", a);
 }
 
+void POINT2table(POINT * p) {
+	lua_newtable(L);
+	lua_pushinteger(L, p->x);
+	lua_setfield(L, -2, "x");
+	lua_pushinteger(L, p->y);
+	lua_setfield(L, -2, "y");
+}
+
+template<typename T>
+void arr2table(T a, void (f)(T), size_t len) {
+	lua_createtable(L, len, 0);
+	for (uint32_t i = 0; i < len; i++) {
+		//MsgBox("%d", i);
+		f(&a[i]);
+		lua_rawseti(L, -2, i);
+	}
+}
+
 //sketchy lua macros
 
 #define valas(type) type val = (type)
@@ -32,8 +50,8 @@ void PopupInt(int32_t a) {
 
 #define rawsamewrap(func, in, ret, ...) rawelementwrap(func, STRINGIFY(func), in, ret, __VA_ARGS__)
 #define samewrap(func, ...) rawsamewrap(func, ;, ;, __VA_ARGS__)
-#define samewrapRet(func, type, ret, ...) rawsamewrap(func, valas(type), ret, __VA_ARGS__)
-
+#define samewrapRetVal(func, type, ret, ...) rawsamewrap(func, valas(type), ret, __VA_ARGS__)
+#define samewrapRet(func, ret, ...) rawsamewrap(func, ;, ret, __VA_ARGS__)
 
 
 #define integer(n) lua_tointeger(L, n)
@@ -44,51 +62,57 @@ static const luaL_Reg mapleLib[] = {
 	
 	#undef space
 	#define space Hacks
-		samewrap(EnableAutoPortal)
-		samewrap(DisableAutoPortal)
-		samewrap(HookSP)
-		samewrap(UnHookSP)
+	samewrap(EnableAutoPortal)
+	samewrap(DisableAutoPortal)
+	samewrap(HookSP)
+	samewrap(UnHookSP)
 
-		samewrap(KeyUp, integer(1))
-		samewrap(KeyDown, integer(1))
-		samewrap(KeyPress, integer(1))
-		samewrap(KeySpam, integer(1))
-		samewrap(KeyUnSpam, integer(1))
+	samewrap(KeyUp, integer(1))
+	samewrap(KeyDown, integer(1))
+	samewrap(KeyPress, integer(1))
+	samewrap(KeySpam, integer(1))
+	samewrap(KeyUnSpam, integer(1))
 
-		samewrap(Teleport, integer(1), integer(2))
-		samewrap(SetSP, integer(1), integer(2))
-		samewrapRet(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
+	samewrap(Teleport, integer(1), integer(2))
+	samewrap(SetSP, integer(1), integer(2))
+	samewrapRetVal(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
 
-		samewrap(HookMove)
-		samewrap(UnHookMove)
-		samewrap(SetMove, integer(1), integer(2))
+	samewrap(HookMove)
+	samewrap(UnHookMove)
+	samewrap(SetMove, integer(1), integer(2))
 
-		samewrapRet(GetX, int32_t, lua_pushinteger(L, val); return 1;)
-		samewrapRet(GetY, int32_t, lua_pushinteger(L, val); return 1;)
-		samewrap(WaitForBreath)
+	samewrap(WaitForBreath)
 
-		samewrap(ResetKeys)
-		samewrap(MoveX, integer(1))
-		samewrap(MoveXOff, integer(1), integer(2))
-		samewrap(SetMoveXOff, integer(1))
-		samewrap(SetMoveDelay, integer(1))
+	samewrap(ResetKeys)
+	samewrap(MoveX, integer(1))
+	samewrap(MoveXOff, integer(1), integer(2))
+	samewrap(SetMoveXOff, integer(1))
+	samewrap(SetMoveDelay, integer(1))
 
-		samewrap(SetRopePollDelay, integer(1))
-		samewrap(Rope, integer(1))
+	samewrap(SetRopePollDelay, integer(1))
+	samewrap(Rope, integer(1))
+	samewrap(RopeY, integer(1))
 
-		samewrap(SetFaceDelay, integer(1))
-		samewrap(FaceLeft)
-		samewrap(FaceRight)
+	samewrap(SetFaceDelay, integer(1))
+	samewrap(FaceLeft)
+	samewrap(FaceRight)
 
-		samewrap(KeyHoldFor, integer(1), integer(2))
+	samewrap(KeyHoldFor, integer(1), integer(2))
+
+	samewrapRetVal(GetMobCount, int32_t, lua_pushinteger(L, val); return 1;)
+	samewrapRetVal(GetMobClosest, POINT, POINT2table(&val); return 1;)
+	samewrapRetVal(GetChar, POINT, POINT2table(&val); return 1;)
+
+	samewrapRetVal(GetMobs, POINT *, arr2table<POINT *>(val, POINT2table, Hacks::GetMobCount()); return 1;)
 
 	#undef space
 	#define space 
-		samewrap(Sleep, integer(1))
-		wrap(Sleep, "Wait", integer(1))
+	samewrap(Sleep, integer(1))
+	wrap(Sleep, "Wait", integer(1))
 
-		samewrap(KeyPressNoHook, integer(1))
-		samewrap(PopupInt, integer(1))
+	samewrap(KeyPressNoHook, integer(1))
+	samewrap(PopupInt, integer(1))
+	samewrap(Message, lua_tolstring(L, 1, NULL))
 
 	{ NULL, NULL }
 };

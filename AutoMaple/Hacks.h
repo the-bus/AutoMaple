@@ -36,6 +36,8 @@ public:
 	static int32_t GetMobCount();
 	static POINT GetMobClosest();
 	static POINT GetChar();
-	static POINT * GetMobs();
+	static pair<POINT *, uint64_t> GetMobs();
+	static pair<RECT *, uint64_t> Hacks::GetRopes();
+	static RECT Hacks::GetMap();
 
 };

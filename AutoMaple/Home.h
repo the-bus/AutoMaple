@@ -37,6 +37,7 @@ namespace AutoMaple {
 	private: System::Windows::Forms::Button^  button1;
 	private: System::Windows::Forms::Button^  button2;
 	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel1;
+	private: System::Windows::Forms::Timer^  timer1;
 	protected:
 
 
@@ -56,9 +57,11 @@ namespace AutoMaple {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			this->components = (gcnew System::ComponentModel::Container());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->tableLayoutPanel1->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -100,6 +103,11 @@ namespace AutoMaple {
 			this->tableLayoutPanel1->Size = System::Drawing::Size(284, 415);
 			this->tableLayoutPanel1->TabIndex = 2;
 			// 
+			// timer1
+			// 
+			this->timer1->Interval = 50;
+			this->timer1->Tick += gcnew System::EventHandler(this, &Home::timer1_Tick);
+			// 
 			// Home
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -109,6 +117,7 @@ namespace AutoMaple {
 			this->Name = L"Home";
 			this->Text = L"Home";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &Home::Home_FormClosing);
+			this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &Home::Home_FormClosed);
 			this->Load += gcnew System::EventHandler(this, &Home::Home_Load);
 			this->tableLayoutPanel1->ResumeLayout(false);
 			this->ResumeLayout(false);
@@ -119,5 +128,7 @@ namespace AutoMaple {
 		private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e);
 		private: System::Void Home_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e);
 		private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e);
-	};
+		private: System::Void Home_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e);
+		private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e);
+};
 }

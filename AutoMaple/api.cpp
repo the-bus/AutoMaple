@@ -5,36 +5,39 @@ lua_State* L = NULL;
 
 void KeyPressNoHook(int32_t key)
 {
-	HWND MShwnd = FindProcessWindow("MapleStoryClass", GetCurrentProcessId());
-	PostMessage(MShwnd, WM_KEYDOWN, key, VKtoMS(key));
-	PostMessage(MShwnd, WM_KEYUP, key, VKtoMS(key));
+	PostMessage(hwnd, WM_KEYDOWN, key, VKtoMS(key));
+	PostMessage(hwnd, WM_KEYUP, key, VKtoMS(key));
 }
 
-void PopupInt(int32_t a) {
+void MessageInt(int32_t a) {
 	MsgBox("%d", a);
 }
 
-void POINT2table(POINT * p) {
+void POINT2table(POINT p) {
 	lua_newtable(L);
-	lua_pushinteger(L, p->x);
+	lua_pushinteger(L, p.x);
 	lua_setfield(L, -2, "x");
-	lua_pushinteger(L, p->y);
+	lua_pushinteger(L, p.y);
 	lua_setfield(L, -2, "y");
 }
 
 template<typename T>
-void arr2table(T a, void (f)(T), size_t len) {
+void arr2table(T * a, void (f)(T), size_t len) {
 	lua_createtable(L, len, 0);
 	for (uint32_t i = 0; i < len; i++) {
-		//MsgBox("%d", i);
-		f(&a[i]);
+		f(a[i]);
 		lua_rawseti(L, -2, i);
 	}
 }
 
+void RECT2table(RECT r) {
+	POINT val[] = { POINT{ r.left, r.bottom }, POINT{ r.right, r.top } };
+	arr2table<POINT>(val, POINT2table, 2);
+}
+
 //sketchy lua macros
 
-#define valas(type) type val = (type)
+#define getval() auto val = 
 
 #define rawlambdawrap(func, in, ret, ...) \
 [](lua_State *L) { \
@@ -46,11 +49,11 @@ void arr2table(T a, void (f)(T), size_t len) {
 #define rawelementwrap(func, name, in, ret, ...) { name, rawlambdawrap(func, in, ret, __VA_ARGS__) },
 
 #define wrap(func, name, ...) rawelementwrap(func, name, ;, ;, __VA_ARGS__)
-#define wrapRet(func, name, type, ret, ...) rawelementwrap(func, name, valas(type), ret, __VA_ARGS__)
+#define wrapRet(func, name, ret, ...) rawelementwrap(func, name, getval(), ret, __VA_ARGS__)
 
 #define rawsamewrap(func, in, ret, ...) rawelementwrap(func, STRINGIFY(func), in, ret, __VA_ARGS__)
 #define samewrap(func, ...) rawsamewrap(func, ;, ;, __VA_ARGS__)
-#define samewrapRetVal(func, type, ret, ...) rawsamewrap(func, valas(type), ret, __VA_ARGS__)
+#define samewrapRetVal(func, ret, ...) rawsamewrap(func, getval(), ret, __VA_ARGS__)
 #define samewrapRet(func, ret, ...) rawsamewrap(func, ;, ret, __VA_ARGS__)
 
 
@@ -75,7 +78,7 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(Teleport, integer(1), integer(2))
 	samewrap(SetSP, integer(1), integer(2))
-	samewrapRetVal(GetMapID, int32_t, lua_pushinteger(L, val); return 1;)
+	samewrapRetVal(GetMapID, lua_pushinteger(L, val); return 1;)
 
 	samewrap(HookMove)
 	samewrap(UnHookMove)
@@ -99,11 +102,14 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(KeyHoldFor, integer(1), integer(2))
 
-	samewrapRetVal(GetMobCount, int32_t, lua_pushinteger(L, val); return 1;)
-	samewrapRetVal(GetMobClosest, POINT, POINT2table(&val); return 1;)
-	samewrapRetVal(GetChar, POINT, POINT2table(&val); return 1;)
+	samewrapRetVal(GetMobCount, lua_pushinteger(L, val); return 1;)
+	samewrapRetVal(GetMobClosest, POINT2table(val); return 1;)
+	samewrapRetVal(GetChar, POINT2table(val); return 1;)
 
-	samewrapRetVal(GetMobs, POINT *, arr2table<POINT *>(val, POINT2table, Hacks::GetMobCount()); return 1;)
+	samewrapRetVal(GetMap, RECT2table(val); return 1;)
+
+	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
+	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
 
 	#undef space
 	#define space 
@@ -111,7 +117,7 @@ static const luaL_Reg mapleLib[] = {
 	wrap(Sleep, "Wait", integer(1))
 
 	samewrap(KeyPressNoHook, integer(1))
-	samewrap(PopupInt, integer(1))
+	samewrap(MessageInt, integer(1))
 	samewrap(Message, lua_tolstring(L, 1, NULL))
 
 	{ NULL, NULL }

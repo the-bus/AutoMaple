@@ -1,7 +1,7 @@
 #include "Home.h"
 #include "inc.h"
 using namespace AutoMaple;
-DWORD HookRet;
+HWND hwnd;
 void GUIWork()
 {
 	Application::EnableVisualStyles();
@@ -45,8 +45,20 @@ System::Void Home::button2_Click(System::Object^  sender, System::EventArgs^  e)
 }
 System::Void Home::Home_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
 	clean();
+}
+System::Void Home::Home_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e) {
 	FreeLibraryAndExitThread(mod, 0);
 }
 System::Void Home::Home_Load(System::Object^  sender, System::EventArgs^  e) {
+	MShwnd();
 	Hacks::HookFrame();
+	timer1->Start();
+}
+System::Void Home::timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
+	RECT rect;
+	GetWindowRect(hwnd, &rect);
+	Point * p = new Point();
+	p->X = rect.left - this->Size.Width;
+	p->Y = rect.top;
+	this->Location = *p;
 }

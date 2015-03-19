@@ -4,7 +4,7 @@ int32_t tX, tY;
 int32_t sX, sY;
 int32_t mX, mY;
 
-uint8_t doneFetch = 0;
+atomic<uint8_t> fetchActive = 0;
 
 uint32_t fRet;
 uint32_t fOesi; //frame cave's original esi
@@ -14,8 +14,8 @@ uint32_t tOesi; //teleport cave's original esi
 uint32_t sOeax; //used by SP to store eax
 
 #define kLen 0x100
-uint8_t pressKeys[kLen] = { 0 };
-uint8_t holdKeys[kLen] = { 0 };
+atomic<uint8_t> pressKeys[kLen] = { 0 };
+atomic<uint8_t> holdKeys[kLen] = { 0 };
 void Hacks::KeySpam(int32_t k) {
 	pressKeys[k] = 2;
 }
@@ -42,11 +42,11 @@ void Hacks::KeyUp(int32_t k)
 }
 void Hacks::EnableAutoPortal() {
 	byte enable = 0x75;
-	Memory::Write(AutoPortal, &enable, 1);
+	Memory::Write((void*)AutoPortal, &enable, 1);
 }
 void Hacks::DisableAutoPortal() {
 	byte disable = 0x74;
-	Memory::Write(AutoPortal, &disable, 1);
+	Memory::Write((void*)AutoPortal, &disable, 1);
 }
 __declspec(naked) void __stdcall RawTeleport() {
 	__asm {
@@ -104,67 +104,62 @@ void Hacks::SetSP(int x, int y) {
 	sY = y;
 }
 POINT Char;
-uint32_t MID = 0;
-uint32_t Breath;
+uint32_t MapID = 0;
+uint32_t CharBreath;
 void __stdcall FetchChar() {
+	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
 	Char.x =
 		round(
-			deref(
-				(Memory::Pointer::read_int(CharBase, CharVec) + VecX),
-				double,
+			Deref<double>(
+				(Vec + VecXOff),
 				2147483647
 			)
 		);
 	Char.y =
 		round(
-			deref(
-				(Memory::Pointer::read_int(CharBase, CharVec) + VecY),
-				double,
+			Deref<double>(
+				(Vec + VecYOff),
 				2147483647
 			)
 		);
-	Breath = Memory::Pointer::read_int(CharBase, CharBreath);
+	CharBreath = DerefOff<uint32_t>(CharBase, CharBreathOff, 0);
 }
-void __stdcall FetchMap() {
-	MID = Memory::Pointer::read_int(MapInfo, MapIDOff);
+void __stdcall FetchMapInfo() {
+	MapID = DerefOff<uint32_t>(MyMapInfo, MyMapIDOff, 0);
 }
 int32_t MobCount = 0;
 POINT MobClosest;
-POINT * Mobs;
-uint8_t RefreshMobs = 0;
+pair<POINT *, uint64_t> Mobs;
+atomic<uint8_t> RefreshMobs = 0;
 void __stdcall FetchMob() {
 	POINT closest = { 2147483647 };
 	long area = 9999999;
 	// mob base
-	uint32_t mob = deref(MobBase, uint32_t, 0);
-	if (!mob) {
-		MobClosest = closest;
-		return;
-	}
+	uint32_t mob = Deref(MobBase, 0);
+	if (!mob)
+		goto end;
 	// mob count
-	MobCount = deref(mob + MobCountOff, int32_t, 0);
-	if (!MobCount) {
-		MobClosest = closest;
-		return;
-	}
+	MobCount = Deref(mob + MobCountOff, 0);
+	if (!MobCount)
+		goto end;
 	// mob off1
-	mob = deref(mob + Mob1Off, uint32_t, 0);
-	if (!mob) {
-		MobClosest = closest;
-		return;
-	}
+	mob = Deref(mob + Mob1Off, 0);
+	if (!mob)
+		goto end;
 	mob -= 0x10; // first mob
-	if (RefreshMobs != 0)
-		Mobs = new POINT [MobCount];
-	int i = 0;
+	if (RefreshMobs != 0) {
+		delete Mobs.first;
+		Mobs.first = new POINT[MobCount];
+	}
+	uint32_t i = 0;
 	while (mob) {
-		uint32_t data = deref(mob + Mob2Off + 0x10, uint32_t, 0); // MobData1
+		uint32_t data = Deref(mob + Mob2Off + 0x10, 0); // MobData1
 		if (!data)
 			return;
-		data = deref(data + Mob3Off, uint32_t, 0); // MobData2
+		data = Deref(data + Mob3Off, 0); // MobData2
 		if (!data)
 			return;
-		data = deref(data + Mob4Off, uint32_t, 0); // MobData3
+		data = Deref(data + Mob4Off, 0); // MobData3
 		if (!data)
 			return;
 		POINT pos = *(POINT *)(data + MobXOff);
@@ -179,40 +174,96 @@ void __stdcall FetchMob() {
 				closest = pos;
 			}
 			if (RefreshMobs != 0)
-				Mobs[i] = POINT{ pos.x, pos.y };
+				Mobs.first[i] = pos;
 			i++;
+			Mobs.second = i;
 		}
-		mob = deref(mob + Mob2Off, uint32_t, 0); // next
+		mob = Deref(mob + Mob2Off, 0); // next
 	}
+	end:
 	MobCount = i;
 	RefreshMobs = 0;
 	MobClosest = closest;
 }
+atomic<uint8_t> RefreshRopes = 0;
+pair<RECT *, uint64_t> Ropes;
+RECT Map;
+boolean InBoundsX(int32_t x) {
+	return (x >= Map.left && x <= Map.right);
+}
+boolean InBoundsY(int32_t y) {
+	return (y >= Map.top && y <= Map.bottom);
+}
+void __stdcall FetchMap() {
+	auto MapLeft = DerefOff<int32_t>(MapBase, MapLeftOff, 0);
+	auto MapRight = DerefOff<int32_t>(MapBase, MapRightOff, 0);
+	auto MapTop = DerefOff<int32_t>(MapBase, MapTopOff, 0);
+	auto MapBottom = DerefOff<int32_t>(MapBase, MapBottomOff, 0);
+	Map = RECT{ MapLeft, MapTop, MapRight, MapBottom };
+	if (RefreshRopes != 0) {
+		delete Ropes.first;
+		vector<RECT> rects;
+		auto Rope = DerefOff<uint32_t>(MapBase, RopeOff, 0);
+		Rope += 0x2C;
+		uint32_t i = 0;
+		while (true) {
+			int32_t x = Deref(Rope, 2147483647);
+			if (!InBoundsX(x))
+				break;
+			int32_t y1 = Deref(Rope + 4, 2147483647);
+			if (!InBoundsY(y1))
+				break;
+			int32_t y2 = Deref(Rope + 8, 2147483647);
+			if (!InBoundsY(y2))
+				break;
+			rects.push_back(RECT{ x, y2, x, y1 });
+			Rope += 0x20;
+			i++;
+		}
+		RECT * arr = new RECT[rects.size()];
+		copy(rects.begin(), rects.end(), arr);
+		Ropes.first = arr;
+		Ropes.second = i;
+		RefreshRopes = 0;
+	}
+}
 void __stdcall FetchAll() {
-	doneFetch = 0;
+	fetchActive = 1;
 	FetchChar();
-	FetchMap();
+	FetchMapInfo();
 	FetchMob();
-	doneFetch = 1;
+	FetchMap();
+	fetchActive = 0;
 }
 void WaitForFetch() {
-	while (doneFetch == 0)
+	while (fetchActive != 0)
 		Sleep(0);
 }
-POINT * Hacks::GetMobs() {
-	WaitForFetch();
-	RefreshMobs = 1;
+pair<POINT *, uint64_t> Hacks::GetMobs() {
+	WaitForFetch(); //wait if a fetch is currently active
+	RefreshMobs = 1; //tell the next fetch to refresh the mobs array
 	while (RefreshMobs != 0)
 		Sleep(0);
 	return Mobs;
+}
+pair<RECT *, uint64_t> Hacks::GetRopes() {
+	WaitForFetch(); //wait if a fetch is currently active
+	RefreshRopes = 1; //tell the next fetch to refresh the mobs array
+	while (RefreshRopes != 0)
+		Sleep(0);
+	return Ropes;
 }
 POINT Hacks::GetChar() {
 	WaitForFetch();
 	return Char;
 }
+RECT Hacks::GetMap() {
+	WaitForFetch();
+	return Map;
+}
 int32_t Hacks::GetMapID() {
 	WaitForFetch();
-	return MID;
+	return MapID;
 }
 int32_t Hacks::GetMobCount() {
 	WaitForFetch();
@@ -223,13 +274,10 @@ POINT Hacks::GetMobClosest() {
 	return MobClosest;
 }
 void Hacks::WaitForBreath() {
-	while (true) {
+	do {
 		WaitForFetch();
-		if (Breath != 0)
-			Sleep(Breath);
-		else
-			break;
-	}
+		Sleep(CharBreath);
+	} while (CharBreath != 0);
 	return;
 }
 uint32_t mOeax;
@@ -285,22 +333,14 @@ void Hacks::MoveXOff(int32_t targetX, int32_t off) {
 	bool right = targetX > GetChar().x;
 	if (right) {
 		SetMove(1, 0);
-		while (targetX - off > GetChar().x)
-			Sleep(0);
+		while (targetX - off > GetChar().x);
 	}
 	else {
 		SetMove(-1, 0);
-		while (targetX + off < GetChar().x)
-			Sleep(0);
+		while (targetX + off < GetChar().x);
 	}
-	//int32_t dist = GetChar().x - targetX;
-	//dist = dist < 0 ? -dist : dist;
-	//if (dist > 10)
-	//MoveXOff(targetX, off);
-	//else {
-		SetMove(0, 0);
-		Sleep(MoveDelay);
-	//}
+	SetMove(0, 0);
+	Sleep(MoveDelay);
 }
 void Hacks::MoveX(int32_t targetX) {
 	MoveXOff(targetX, Xoff);
@@ -322,13 +362,11 @@ void Hacks::RopeY(int32_t targetY) {
 	bool down = targetY > GetChar().y;
 	if (down) {
 		SetMove(0, 1);
-		while (targetY > GetChar().y)
-			Sleep(0);
+		while (targetY > GetChar().y);
 	}
 	else {
 		SetMove(0, -1);
-		while (targetY < GetChar().y)
-			Sleep(0);
+		while (targetY < GetChar().y);
 	}
 	SetMove(0, 0);
 }

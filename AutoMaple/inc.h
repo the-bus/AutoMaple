@@ -1,4 +1,5 @@
 //library includes
+#pragma once
 #include <windows.h>
 #include <string.h>
 #include <iostream>
@@ -17,13 +18,17 @@
 #include <unordered_map>
 #include <chrono>
 
+#ifndef _M_CEE
+	#include <atomic>
+#endif
+using namespace std;
+
 //libs
 #pragma comment(lib, "Shlwapi.lib")
 #include "Shlwapi.h"
 
 #pragma comment(lib, "lua5.3.0.lib")
 #include "lua.hpp"
-
 
 //ignore some warnings
 #pragma warning(disable: 4945)
@@ -40,16 +45,22 @@
 #define MobXOff 0x00000058
 #define MobYOff (MobXOff + 4)
 #define MobDeathOff 0x00000580
-#define MapInfo (unsigned long)0x01E2B910
-#define MapIDOff (unsigned long)0x13e4
-#define AutoPortal (void*)0x014E4EDA
+#define MyMapInfo 0x01E2B910
+#define MyMapIDOff 0x13e4
+#define AutoPortal 0x014E4EDA
 #define CharBase 0x01E26B14
-#define CharBreath 0x000008B0
-#define CharVec (unsigned long)0x517C
-#define VecX (unsigned long)0xAC
-#define VecY (unsigned long)(VecX + 8)
-#define CharXOff (unsigned long)0xCCC4
-#define CharYOff (unsigned long)(CharXOff + 4)
+#define CharBreathOff 0x000008B0
+#define CharVecOff 0x517C
+#define VecXOff 0xAC
+#define VecYOff (VecXOff + 8)
+#define CharXOff 0xCCC4
+#define CharYOff (CharXOff + 4)
+#define MapBase 0x01E2B1EC
+#define MapLeftOff 0x0000001C
+#define MapTopOff (MapLeftOff + 4)
+#define MapRightOff (MapLeftOff + 8)
+#define MapBottomOff (MapLeftOff + 12)
+#define RopeOff 0xB4
 
 //6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
 
@@ -71,12 +82,10 @@
 //local includes
 #include "Memory.h"
 #include "Hacks.h"
-
-using namespace std;
-
 extern lua_State* L;
 extern HMODULE mod;
 extern HANDLE hThread;
+extern HWND hwnd;
 
 //macros
 
@@ -85,7 +94,7 @@ extern HANDLE hThread;
 #define CloseThread(Handle) TerminateThread(Handle, 0);
 #define STRINGIFY(x) #x
 #define Message(ach) MessageBox(NULL, ach, "", MB_OK|MB_ICONEXCLAMATION)
-#define deref(addy, type, bad) IsBadReadPtr((void*)(addy), sizeof(type)) ? bad : *(type *)(addy)
+#define MShwnd() hwnd = FindProcessWindow("MapleStoryClass", GetCurrentProcessId());
 
 //functions
 
@@ -93,7 +102,15 @@ extern HANDLE hThread;
 int32_t MsgBox(PSTR sz, ...);
 uint32_t VKtoMS(uint32_t key);
 HWND WINAPI FindProcessWindow(__in_z LPCSTR lpcszWindowClass, __in DWORD dwProcessId);
-
+template<typename T>
+T Deref(uint64_t addr, T bad) {
+	__try { return *(T *)addr; }
+	__except (EXCEPTION_EXECUTE_HANDLER) { return bad; }
+}
+template<typename T>
+T DerefOff(uint64_t addr, uint64_t off, T bad) {
+	return Deref<T>(Deref<T>(addr, bad) + off, bad);
+}
 //etc
 void initLua();
 void Close();

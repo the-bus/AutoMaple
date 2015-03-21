@@ -33,7 +33,7 @@ int32_t Xoff;
 int32_t MoveDelay;
 int32_t FaceDelay;
 
-atomic<uint8_t> Moved = 0;
+uint8_t Moved = 0;
 
 void Hacks::KeySpam(int32_t k) {
 	pressKeys[k] = 2;
@@ -314,10 +314,10 @@ void Hacks::HookMove() {
 	Memory::Write((void*)(MoveJmp + 5), &nops, 3);
 }
 void Hacks::UnHookMove() {
-	byte orig[] = {0xFF,0x15,0xC0,0xB8,0xE3,0x01};
-	Memory::Write(MoveDisable, &orig, 6);
 	byte orig2[] = {0x89,0x7C,0x24,0x20,0x89,0x7C,0x24,0x1C};
 	Memory::Write((void*)MoveJmp, &orig2, 8);
+	byte orig[] = { 0xFF, 0x15, 0xC0, 0xB8, 0xE3, 0x01 };
+	Memory::Write(MoveDisable, &orig, 6);
 }
 void Hacks::ResetKeys() {
 	for (uint32_t i = 0; i < kLen; i++) {

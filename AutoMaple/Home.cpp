@@ -22,7 +22,6 @@ void end() {
 	Hacks::UnHookMove();
 	Hacks::UnHookSP();
 	Hacks::ResetKeys();
-	Hacks::SetMove(0, 0);
 	//Hacks::UnHookFrame();
 	setDefaults();
 }

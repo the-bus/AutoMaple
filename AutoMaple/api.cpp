@@ -89,6 +89,7 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(MoveX, integer(1))
 	samewrap(MoveXOff, integer(1), integer(2))
+	samewrap(MoveXOffNoStop, integer(1), integer(2))
 	samewrap(SetMoveXOff, integer(1))
 	samewrap(SetMoveDelay, integer(1))
 
@@ -96,7 +97,6 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(Rope, integer(1))
 	samewrap(RopeY, integer(1))
 
-	samewrap(SetFaceDelay, integer(1))
 	samewrap(FaceLeft)
 	samewrap(FaceRight)
 

@@ -59,7 +59,6 @@ public:
 		this is necesarry because SetMove has a delay and so the offset beats the delay.
 		characters with different movement speeds will probably have to adjust the x offset they use */
 	static void SetRopePollDelay(int32_t); //sets the delay before the loop checks if the y value has changed
-	static void SetFaceDelay(int32_t); //sets the amount of time the face functions will move for
 	static void HookMove();
 	static void UnHookMove();
 		//the following methods require move to be hooked:
@@ -71,6 +70,7 @@ public:
 			example: (1, 0) moves right */
 		static void MoveX(int32_t); //moves to an x value using the set x offset
 		static void MoveXOff(int32_t, int32_t); //first arg: target x, second arg: x offset, not affected by SetMoveXOff
+		static void MoveXOffNoStop(int32_t targetX, int32_t off); //moves without stopping afterwards
 		static void Rope(int32_t); //-1 for up, 1 for down
 		static void RopeY(int32_t); //moves on a rope to a certain y value, not affected by SetRopePollDelay
 		static void FaceLeft(); //moves left to face left, requires SetFaceDelay

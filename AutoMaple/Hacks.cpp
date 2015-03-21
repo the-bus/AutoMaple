@@ -33,6 +33,8 @@ int32_t Xoff;
 int32_t MoveDelay;
 int32_t FaceDelay;
 
+atomic<uint8_t> Moved = 0;
+
 void Hacks::KeySpam(int32_t k) {
 	pressKeys[k] = 2;
 }
@@ -72,7 +74,7 @@ __declspec(naked) void __stdcall RawTeleport() {
 		mov esi, [eax] //Character base
 		lea ecx, [esi + 04]
 		//8B ? ? ? ? 00 85 C0 74 ? 83 ? ? 74 ? 83 ? ? C3 33 C0 C3 CC CC CC CC CC CC CC CC CC CC 8B ? ? ? ? 00 85 C0 74 ? 83 ? ? 74 ? 83 ? ? C3 33 C0 C3 CC CC CC CC CC CC CC CC CC CC 8B ? 24 ? 56 50 8B ? 8B
-		mov edx, 0x015843E0
+		mov edx, 0x01584600
 		call edx
 		test eax, eax
 		je TeleportEnd
@@ -81,7 +83,7 @@ __declspec(naked) void __stdcall RawTeleport() {
 		push 00
 		mov ecx, eax
 		//8B ? 24 ? 8B ? ? 8B ? ? ? 8D ? ? 8B ? ? ? ? ? ? FF ? 85 C0 ? ? ? ? ? ? ? ? ? E8 [1st Result]
-		mov edx, 0x01600DC0
+		mov edx, 0x01600FE0
 		call edx
 		
 		TeleportEnd:
@@ -290,6 +292,7 @@ void Hacks::WaitForBreath() {
 	return;
 }
 __declspec(naked) void __stdcall MoveCave() {
+	Moved = 1;
 	__asm {
 		mov mOeax, eax
 		mov eax, mX
@@ -328,6 +331,9 @@ void Hacks::SetMove(int32_t x, int32_t y) {
 		mX = x;
 	if (!(y < -1 || y > 1))
 		mY = y;
+	Moved = 0;
+	while (Moved == 0)
+		Sleep(0);
 }
 void Hacks::SetMoveDelay(int32_t delay) {
 	MoveDelay = delay;
@@ -335,7 +341,7 @@ void Hacks::SetMoveDelay(int32_t delay) {
 void Hacks::SetMoveXOff(int32_t off) {
 	Xoff = off;
 }
-void Hacks::MoveXOff(int32_t targetX, int32_t off) {
+void Hacks::MoveXOffNoStop(int32_t targetX, int32_t off) {
 	bool right = targetX > GetChar().x;
 	if (right) {
 		SetMove(1, 0);
@@ -345,6 +351,9 @@ void Hacks::MoveXOff(int32_t targetX, int32_t off) {
 		SetMove(-1, 0);
 		while (targetX + off < GetChar().x);
 	}
+}
+void Hacks::MoveXOff(int32_t targetX, int32_t off) {
+	MoveXOffNoStop(targetX, off);
 	SetMove(0, 0);
 	Sleep(MoveDelay);
 }
@@ -376,17 +385,12 @@ void Hacks::RopeY(int32_t targetY) {
 	}
 	SetMove(0, 0);
 }
-void Hacks::SetFaceDelay(int32_t delay) {
-	FaceDelay = delay;
-}
 void Hacks::FaceLeft() {
 	SetMove(-1, 0);
-	Sleep(FaceDelay);
 	SetMove(0, 0);
 }
 void Hacks::FaceRight() {
 	SetMove(1, 0);
-	Sleep(FaceDelay);
 	SetMove(0, 0);
 }
 void Hacks::KeyHoldFor(int32_t k, int32_t delay) {

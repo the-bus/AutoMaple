@@ -22,7 +22,7 @@ public:
 	static void KeyDown(int32_t); //virtual key code
 	static void KeyUp(int32_t); //virtual key code
 	static void KeyPress(int32_t); //virtual key code
-		// use  KeyPressNoHook if the character is out of game (e.g. in Cash Shop)
+	// use  KeyPressNoHook if the character is out of game (e.g. in Cash Shop)
 	static void KeySpam(int32_t); //virtual key code, spams presses
 	static void KeyUnSpam(int32_t); //virtual key code, stops spamming presses
 	static void KeyHoldFor(int32_t, int32_t); //first arg: virtual key code, second arg: hold delay
@@ -33,7 +33,7 @@ public:
 
 	static void Teleport(int32_t, int32_t); //x and y, not usually stable
 
-	//spawn point control, not working right now:
+	//spawn point control:
 	static void HookSP();
 	static void UnHookSP();
 	static void SetSP(int32_t, int32_t); //x and y, spawn point must be hooked

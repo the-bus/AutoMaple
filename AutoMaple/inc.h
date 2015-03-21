@@ -82,6 +82,8 @@ using namespace std;
 //local includes
 #include "Memory.h"
 #include "Hacks.h"
+#include "MaplePacket.h"
+
 extern lua_State* L;
 extern HMODULE mod;
 extern HANDLE hThread;

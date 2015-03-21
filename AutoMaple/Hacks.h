@@ -49,6 +49,8 @@ public:
 	static pair<RECT *, uint64_t> GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle
 	
+	static bool SendPacket(const char * p); //send a packet
+
 	//movement stuff:
 	static void SetMoveDelay(int32_t); //sets the delay after a move
 	static void SetMoveXOff(int32_t);

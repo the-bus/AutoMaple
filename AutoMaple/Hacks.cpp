@@ -460,3 +460,10 @@ void Hacks::UnHookFrame() {
 	byte movEdiEdi[] = { 0x8B, 0xFF };
 	Memory::Write(dispatchAddy, &movEdiEdi, 2);
 }
+bool Hacks::SendPacket(const char * packet) {
+	string temp(packet);
+	static MaplePacket p;
+	if (!p.Parse(temp) || !p.Send())
+		return false;
+	return true;
+}

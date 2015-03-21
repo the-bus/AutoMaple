@@ -111,6 +111,8 @@ static const luaL_Reg mapleLib[] = {
 	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
 	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
 
+	samewrapRetVal(SendPacket, lua_pushboolean(L, val); return 1;, lua_tostring(L, 1))
+
 	#undef space
 	#define space 
 	samewrap(Sleep, integer(1))

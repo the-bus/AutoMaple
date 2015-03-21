@@ -15,6 +15,9 @@
     <Filter Include="Lua">
       <UniqueIdentifier>{f5b06f6b-a1c4-488c-a7c2-7705736b0b65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{2f9e9211-8aee-4d4f-b62e-8aac0e1a9b64}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Home.cpp">
@@ -34,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="Memory.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MaplePacket.cpp">
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +69,12 @@
     </ClInclude>
     <ClInclude Include="inc.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaplePacket.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="MapleStructs.h">
+      <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

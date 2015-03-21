@@ -46,8 +46,8 @@ public:
 	static POINT GetMobClosest(); //returns the closest mob as a point
 	static POINT GetChar(); //returns the character as a point
 	static pair<POINT *, uint64_t> GetMobs(); //returns a table of mobs as points
-	static pair<RECT *, uint64_t> Hacks::GetRopes(); //returns a table of ropes as rectangles
-	static RECT Hacks::GetMap(); //returns the bounding box of the map as a rectangle
+	static pair<RECT *, uint64_t> GetRopes(); //returns a table of ropes as rectangles
+	static RECT GetMap(); //returns the bounding box of the map as a rectangle
 	
 	//movement stuff:
 	static void SetMoveDelay(int32_t); //sets the delay after a move
@@ -82,4 +82,5 @@ public:
 	/* if you call a function that returns a rect(angle), it will have a table (aka array/list) with 2 points
 	the first point in a rectangle is the bottom left point
 	the second point in a rectangle is the top right point
-	bottom y value of a rope example: maple.GetRopes()[0][0].y */};
+	bottom y value of a rope example: maple.GetRopes()[0][0].y */
+};

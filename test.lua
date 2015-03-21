@@ -55,6 +55,21 @@ maple.HookMove()
 while true do
 	maple.MoveX(maple.GetMobClosest().x)
 end
+function MoveToClosestRope()
+	dist = 99999999
+	local closest
+	ropes = maple.GetRopes()
+	charX = maple.GetChar().x
+	charY = maple.GetChar().y
+	for k, v in pairs(ropes) do
+		temp = math.abs(charX - v[0].x)
+		if temp < dist then
+			dist = temp
+			closest = k
+		end
+	end
+	maple.MoveX(ropes[closest][0].x)
+end
 function GetMobsOnPlatform(y)
 	mobs = maple.GetMobs()
 	Count = 0
@@ -82,7 +97,7 @@ function CSTele(x, y)
 		maple.KeyPressNoHook(0x20) --press space to exit the CS
 		maple.Wait(200)
 	end
-	while maple.GetX() == 2147483647 do
+	while maple.GetChar().x == 2147483647 do
 		maple.Wait(50)
 	end
 	maple.Wait(500)

@@ -109,12 +109,12 @@ __declspec(naked) void __stdcall SPCave() {
 	}
 }
 void Hacks::HookSP() {
-	//uint32_t addr = (uint32_t)SPCave;
-	//Memory::Write(SP, &addr, 4);
+	uint32_t addr = (uint32_t)SPCave;
+	Memory::Write(SP, &addr, 4);
 }
 void Hacks::UnHookSP() {
-	//uint32_t orig = SPOrig;
-	//Memory::Write(SP, &orig, 4);
+	uint32_t orig = SPOrig;
+	Memory::Write(SP, &orig, 4);
 }
 void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;

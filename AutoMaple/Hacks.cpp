@@ -8,14 +8,31 @@ atomic<uint8_t> fetchActive = 0;
 
 uint32_t fRet;
 uint32_t fOesi; //frame cave's original esi
-
 uint32_t tOesi; //teleport cave's original esi
-
 uint32_t sOeax; //used by SP to store eax
+uint32_t mOeax;
 
 #define kLen 0x100
 atomic<uint8_t> pressKeys[kLen] = { 0 };
 atomic<uint8_t> holdKeys[kLen] = { 0 };
+
+POINT Char;
+uint32_t MapID;
+uint32_t CharBreath;
+
+int32_t MobCount;
+POINT MobClosest;
+pair<POINT *, uint64_t> Mobs;
+atomic<uint8_t> RefreshMobs = 0;
+
+atomic<uint8_t> RefreshRopes = 0;
+pair<RECT *, uint64_t> Ropes;
+RECT Map;
+
+int32_t Xoff;
+int32_t MoveDelay;
+int32_t FaceDelay;
+
 void Hacks::KeySpam(int32_t k) {
 	pressKeys[k] = 2;
 }
@@ -92,20 +109,17 @@ __declspec(naked) void __stdcall SPCave() {
 	}
 }
 void Hacks::HookSP() {
-	uint32_t addr = (unsigned int)SPCave;
-	Memory::Write(SP, &addr, 4);
+	//uint32_t addr = (uint32_t)SPCave;
+	//Memory::Write(SP, &addr, 4);
 }
 void Hacks::UnHookSP() {
-	uint32_t orig = SPOrig;
-	Memory::Write(SP, &orig, 4);
+	//uint32_t orig = SPOrig;
+	//Memory::Write(SP, &orig, 4);
 }
-void Hacks::SetSP(int x, int y) {
+void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;
 	sY = y;
 }
-POINT Char;
-uint32_t MapID = 0;
-uint32_t CharBreath;
 void __stdcall FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
 	Char.x =
@@ -127,10 +141,6 @@ void __stdcall FetchChar() {
 void __stdcall FetchMapInfo() {
 	MapID = DerefOff<uint32_t>(MyMapInfo, MyMapIDOff, 0);
 }
-int32_t MobCount = 0;
-POINT MobClosest;
-pair<POINT *, uint64_t> Mobs;
-atomic<uint8_t> RefreshMobs = 0;
 void __stdcall FetchMob() {
 	POINT closest = { 2147483647 };
 	long area = 9999999;
@@ -185,9 +195,6 @@ void __stdcall FetchMob() {
 	RefreshMobs = 0;
 	MobClosest = closest;
 }
-atomic<uint8_t> RefreshRopes = 0;
-pair<RECT *, uint64_t> Ropes;
-RECT Map;
 boolean InBoundsX(int32_t x) {
 	return (x >= Map.left && x <= Map.right);
 }
@@ -201,29 +208,31 @@ void __stdcall FetchMap() {
 	auto MapBottom = DerefOff<int32_t>(MapBase, MapBottomOff, 0);
 	Map = RECT{ MapLeft, MapTop, MapRight, MapBottom };
 	if (RefreshRopes != 0) {
-		delete Ropes.first;
-		vector<RECT> rects;
 		auto Rope = DerefOff<uint32_t>(MapBase, RopeOff, 0);
+		auto RopeCount = Deref<uint32_t>(Rope - 4, 0) - 1;
+		delete Ropes.first;
+		Ropes.first = new RECT[RopeCount];
+		//vector<RECT> rects;
 		Rope += 0x2C;
 		uint32_t i = 0;
-		while (true) {
+		for (; i < RopeCount; i++) {
 			int32_t x = Deref(Rope, 2147483647);
-			if (!InBoundsX(x))
-				break;
+			//if (!InBoundsX(x))
+			//	break;
 			int32_t y1 = Deref(Rope + 4, 2147483647);
-			if (!InBoundsY(y1))
-				break;
+			//if (!InBoundsY(y1))
+			//	break;
 			int32_t y2 = Deref(Rope + 8, 2147483647);
-			if (!InBoundsY(y2))
-				break;
-			rects.push_back(RECT{ x, y2, x, y1 });
+			//if (!InBoundsY(y2))
+			//	break;
+			//rects.push_back(RECT{ x, y2, x, y1 });
+			Ropes.first[i] = RECT{ x, y2, x, y1 };
 			Rope += 0x20;
-			i++;
+			Ropes.second = i + 1;
 		}
-		RECT * arr = new RECT[rects.size()];
-		copy(rects.begin(), rects.end(), arr);
-		Ropes.first = arr;
-		Ropes.second = i;
+		//RECT * arr = new RECT[rects.size()];
+		//copy(rects.begin(), rects.end(), arr);
+		//Ropes.first = arr;
 		RefreshRopes = 0;
 	}
 }
@@ -280,7 +289,6 @@ void Hacks::WaitForBreath() {
 	} while (CharBreath != 0);
 	return;
 }
-uint32_t mOeax;
 __declspec(naked) void __stdcall MoveCave() {
 	__asm {
 		mov mOeax, eax
@@ -321,8 +329,6 @@ void Hacks::SetMove(int32_t x, int32_t y) {
 	if (!(y < -1 || y > 1))
 		mY = y;
 }
-int32_t Xoff;
-int32_t MoveDelay;
 void Hacks::SetMoveDelay(int32_t delay) {
 	MoveDelay = delay;
 }
@@ -370,7 +376,6 @@ void Hacks::RopeY(int32_t targetY) {
 	}
 	SetMove(0, 0);
 }
-int32_t FaceDelay;
 void Hacks::SetFaceDelay(int32_t delay) {
 	FaceDelay = delay;
 }
@@ -398,7 +403,7 @@ void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 		push Key // 2nd parameter: key code for CTRL
 		push VK // 1st parameter: Apparently unused parameter that seems to be related to the type of key that is being pressed. You can just set it to zero
 		// ? ? ? ? ? 85 ? 74 ? 8D ? ? 8B ? 8B ? FF ? C2 08 00
-		mov edx, 0x0163A8F0
+		mov edx, 0x0163AB10
 		call edx // key press function
 		mov esi, fOesi
 	}
@@ -424,9 +429,6 @@ void __stdcall SendKeys() {
 }
 __declspec(naked) void __stdcall FrameCave() {
 	__asm {
-		mov edi,edi //original
-		push ebp    //original
-		mov ebp,esp //original
 		pushad
 		call SendKeys
 		popad
@@ -439,10 +441,18 @@ __declspec(naked) void __stdcall FrameCave() {
 }
 void Hacks::HookFrame() {
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
-	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "PeekMessageA") + 0x0);
-	fRet = (unsigned long)dispatchAddy+5;
+	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
+	fRet = (uint32_t)(dispatchAddy) + 2;
 	byte opcode = 0xE9;
-	Memory::Write(dispatchAddy, &opcode, 1);
-	uint32_t distance = jmp(dispatchAddy, FrameCave);
-	Memory::Write(dispatchAddy+1, &distance, 4);
+	Memory::Write(dispatchAddy - 5, &opcode, 1);
+	uint32_t distance = jmp(dispatchAddy - 5, FrameCave);
+	Memory::Write(dispatchAddy - 4, &distance, 4);
+	byte backShortJump[] = { 0xEB, 0xF9 };
+	Memory::Write(dispatchAddy, &backShortJump, 2);
+}
+void Hacks::UnHookFrame() {
+	HINSTANCE hMod = GetModuleHandle("user32.dll");
+	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
+	byte movEdiEdi[] = { 0x8B, 0xFF };
+	Memory::Write(dispatchAddy, &movEdiEdi, 2);
 }

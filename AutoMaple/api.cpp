@@ -14,7 +14,7 @@ void MessageInt(int32_t a) {
 }
 
 void POINT2table(POINT p) {
-	lua_newtable(L);
+	lua_createtable(L, 0, 2);
 	lua_pushinteger(L, p.x);
 	lua_setfield(L, -2, "x");
 	lua_pushinteger(L, p.y);
@@ -75,6 +75,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(KeyPress, integer(1))
 	samewrap(KeySpam, integer(1))
 	samewrap(KeyUnSpam, integer(1))
+	samewrap(ResetKeys)
 
 	samewrap(Teleport, integer(1), integer(2))
 	samewrap(SetSP, integer(1), integer(2))
@@ -86,7 +87,6 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(WaitForBreath)
 
-	samewrap(ResetKeys)
 	samewrap(MoveX, integer(1))
 	samewrap(MoveXOff, integer(1), integer(2))
 	samewrap(SetMoveXOff, integer(1))
@@ -123,6 +123,18 @@ static const luaL_Reg mapleLib[] = {
 	{ NULL, NULL }
 };
 
+int index(lua_State *L) {
+	Message("Error! The following does not exist in the maple table:");
+	Message(lua_tolstring(L, -1, NULL));
+	clean();
+	return 0;
+}
+
+static const luaL_Reg meta[] = {
+	{ "__index", index },
+	{ NULL, NULL }
+};
+
 ///////////////////////////////////////
 
 void initLua() {
@@ -132,8 +144,14 @@ void initLua() {
 
 	/* load Lua base libraries */
 	luaL_openlibs(L);
+
 	luaL_newlib(L, mapleLib);
+	lua_pushvalue(L, -1);
 	lua_setglobal(L, "maple");
+
+	luaL_newmetatable(L, "MyMetaTableFallback");
+	luaL_setfuncs(L, meta, 0);
+	lua_setmetatable(L, -2);
 
 	/* run the script */
 	char file[] = "\\test.lua";

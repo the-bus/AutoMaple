@@ -47,14 +47,14 @@ using namespace std;
 #define MobDeathOff 0x00000580
 #define MyMapInfo 0x01E2B910
 #define MyMapIDOff 0x13e4
-#define AutoPortal 0x014E4EDA
+#define AutoPortal 0x014E4F1A
 #define CharBase 0x01E26B14
 #define CharBreathOff 0x000008B0
 #define CharVecOff 0x517C
 #define VecXOff 0xAC
 #define VecYOff (VecXOff + 8)
-#define CharXOff 0xCCC4
-#define CharYOff (CharXOff + 4)
+//#define CharXOff 0xCCC4
+//#define CharYOff (CharXOff + 4)
 #define MapBase 0x01E2B1EC
 #define MapLeftOff 0x0000001C
 #define MapTopOff (MapLeftOff + 4)
@@ -64,16 +64,16 @@ using namespace std;
 
 //6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
 
-#define SP (void*)0x01BFDE50
-#define SPOrig 0x015FF360
-
+#define SP (void*)0x1186AE68
+#define SPOrig 0x015FF580
+//0x015FF360
 //FF 15 ?? ?? ?? ?? 3B C7 0F 85 ?? ?? ?? ?? 8B 0D ?? ?? ?? ?? E8
 
-#define MoveDisable (void*)0x0161BBD9
+#define MoveDisable (void*)0x0161BDF9
 
 //89 4C 24 20 89 4C 24 1C 8B 82 A0 5F 00 00 3B C1 74 16 8D 44 24 1C 50 8D
 
-#define MoveJmp 0x0161BB72
+#define MoveJmp 0x0161BD92
 
 #define MS_PRESS 0x00000000
 #define MS_DOWN  0x00000030
@@ -89,7 +89,7 @@ extern HWND hwnd;
 
 //macros
 
-#define jmp(frm, to) (int)(((int)to - (int)frm) - 5)
+#define jmp(frm, to) (int)(((int)(to) - (int)(frm)) - 5)
 #define OpenThread(void) CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&void, NULL, NULL, NULL);
 #define CloseThread(Handle) TerminateThread(Handle, 0);
 #define STRINGIFY(x) #x
@@ -108,9 +108,11 @@ T Deref(uint64_t addr, T bad) {
 	__except (EXCEPTION_EXECUTE_HANDLER) { return bad; }
 }
 template<typename T>
-T DerefOff(uint64_t addr, uint64_t off, T bad) {
+T DerefOff(uint64_t addr, int64_t off, T bad) {
 	return Deref<T>(Deref<T>(addr, bad) + off, bad);
 }
+
 //etc
 void initLua();
 void Close();
+void clean();

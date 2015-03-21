@@ -1,10 +1,8 @@
 --Sample bot for Mysterious Path 3 (works on my Angelic Buster)
-
 maple.HookMove()
 maple.SetMoveXOff(30)
 maple.SetMoveDelay(400)
 maple.SetFaceDelay(100)
---maple.SetRopePollDelay(400) --not needed when using RopeY
 function AttackWait()
 	maple.KeyHoldFor(0x11, 10000)
 	maple.Wait(1000)
@@ -14,7 +12,7 @@ function JumpWait()
 	maple.Wait(300)
 end
 while true do
-maple.KeySpam(0x5A)
+	maple.KeySpam(0x5A) --z loot
 	maple.MoveX(17)
 	maple.KeyDown(0x12)
 	maple.RopeY(-193) --going up
@@ -22,9 +20,9 @@ maple.KeySpam(0x5A)
 	maple.MoveX(285)
 	JumpWait()
 	maple.FaceLeft()
-maple.KeyUnSpam(0x5A)
+	maple.KeyUnSpam(0x5A)
 	AttackWait()
-maple.KeySpam(0x5A)
+	maple.KeySpam(0x5A)
 	maple.MoveX(379)
 	maple.KeyDown(0x12)
 	maple.RopeY(-553)
@@ -32,13 +30,13 @@ maple.KeySpam(0x5A)
 	maple.MoveX(855)
 	JumpWait()
 	maple.FaceLeft()
-maple.KeyUnSpam(0x5A)
+	maple.KeyUnSpam(0x5A)
 	AttackWait()
-maple.KeySpam(0x5A)
+	maple.KeySpam(0x5A)
 	maple.MoveX(1013)
 	maple.RopeY(-253) --going down
 	maple.MoveX(700)
-maple.KeyUnSpam(0x5A)
+	maple.KeyUnSpam(0x5A)
 	AttackWait()
 end
 
@@ -53,6 +51,10 @@ end
 
 
 --not used
+maple.HookMove()
+while true do
+	maple.MoveX(maple.GetMobClosest().x)
+end
 function GetMobsOnPlatform(y)
 	mobs = maple.GetMobs()
 	Count = 0
@@ -64,25 +66,25 @@ function GetMobsOnPlatform(y)
 	return Count
 end
 function CSTele(x, y)
-	HookSP()
-	WaitForBreath()
-	Wait(500)
-	oMapID = GetMapID() --original map ID
-	SetSP(x, y) --set the spawn point
-	while GetMapID() == oMapID do --wait until the map id changes (becomes invalid when the char enters CS)
-		KeyPress(0x44) --vk (virtual key) code for "d" (I put Cash Shop on "d")
-		Wait(50) --wait before checking again
+	maple.HookSP()
+	maple.WaitForBreath()
+	maple.Wait(500)
+	oMapID = maple.GetMapID() --original map ID
+	maple.SetSP(x, y) --set the spawn point
+	while maple.GetMapID() == oMapID do --wait until the map id changes (becomes invalid when the char enters CS)
+		maple.KeyPress(0x44) --vk (virtual key) code for "d" (I put Cash Shop on "d")
+		maple.Wait(50) --wait before checking again
 	end
-	while GetMapID() ~= oMapID do --wait until the character has reentered the map
+	while maple.GetMapID() ~= oMapID do --wait until the character has reentered the map
 		--keep trying to exit
-		KeyPressNoHook(0x1B) --escape key code to exit CS
-		Wait(200) --wait a bit of time for the popup
-		KeyPressNoHook(0x20) --press space to exit the CS
-		Wait(200)
+		maple.KeyPressNoHook(0x1B) --escape key code to exit CS
+		maple.Wait(200) --wait a bit of time for the popup
+		maple.KeyPressNoHook(0x20) --press space to exit the CS
+		maple.Wait(200)
 	end
-	while GetX() == 2147483647 do
-		Wait(50)
+	while maple.GetX() == 2147483647 do
+		maple.Wait(50)
 	end
-	Wait(500)
-	UnHookSP()
+	maple.Wait(500)
+	maple.UnHookSP()
 end

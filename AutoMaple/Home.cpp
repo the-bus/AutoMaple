@@ -23,6 +23,7 @@ void end() {
 	Hacks::UnHookSP();
 	Hacks::ResetKeys();
 	Hacks::SetMove(0, 0);
+	//Hacks::UnHookFrame();
 	setDefaults();
 }
 void clean() {
@@ -38,6 +39,7 @@ void clean() {
 }
 System::Void Home::button1_Click(System::Object^  sender, System::EventArgs^  e) {
 	clean();
+	//Hacks::HookFrame();
 	h = OpenThread(initLua);
 }
 System::Void Home::button2_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -52,7 +54,7 @@ System::Void Home::Home_FormClosed(System::Object^  sender, System::Windows::For
 System::Void Home::Home_Load(System::Object^  sender, System::EventArgs^  e) {
 	MShwnd();
 	Hacks::HookFrame();
-	timer1->Start();
+	//timer1->Start();
 }
 System::Void Home::timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
 	RECT rect;

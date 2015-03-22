@@ -326,14 +326,32 @@ void Hacks::ResetKeys() {
 		pressKeys[i] = 0;
 	}
 }
-void Hacks::SetMove(int32_t x, int32_t y) {
-	if (!(x < -1 || x > 1))
-		mX = x;
-	if (!(y < -1 || y > 1))
-		mY = y;
+void Hacks::SetMove(int32_t dirX, int32_t dirY) {
+	if (!(dirX < -1 || dirX > 1))
+		mX = dirX;
+	if (!(dirY < -1 || dirY > 1))
+		mY = dirY;
 	Moved = 0;
 	while (Moved == 0)
 		Sleep(0);
+}
+void Hacks::MoveTowardsX(int32_t targetX) {
+	int32_t charX = GetChar()["x"];
+	if (targetX > charX) {
+		SetMove(1, 0);
+	}
+	else {
+		SetMove(-1, 0);
+	}
+}
+void Hacks::MoveTowardsY(int32_t targetY) {
+	int32_t charY = GetChar()["y"];
+	if (targetY > charY) {
+		SetMove(1, 0);
+	}
+	else {
+		SetMove(-1, 0);
+	}
 }
 void Hacks::SetMoveDelay(int32_t delay) {
 	MoveDelay = delay;
@@ -364,8 +382,8 @@ int32_t RopePollDelay;
 void Hacks::SetRopePollDelay(int32_t delay) {
 	RopePollDelay = delay;
 }
-void Hacks::Rope(int32_t dir) {
-	SetMove(0, dir);
+void Hacks::Rope(int32_t dirY) {
+	SetMove(0, dirY);
 	int32_t oY; //original y
 	do {
 		oY = GetChar()["y"];

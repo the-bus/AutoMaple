@@ -83,53 +83,56 @@ static const luaL_Reg mapleLib[] = {
 	
 	#undef space
 	#define space Hacks
-	samewrap(EnableAutoPortal)
-	samewrap(DisableAutoPortal)
-	samewrap(HookSP)
-	samewrap(UnHookSP)
-
-	samewrap(KeyUp, integer(1))
 	samewrap(KeyDown, integer(1))
+	samewrap(KeyUp, integer(1))
 	samewrap(KeyPress, integer(1))
 	samewrap(KeySpam, integer(1))
+	samewrap(KeyHoldFor, integer(1), integer(2))
 	samewrap(KeyUnSpam, integer(1))
 	samewrap(ResetKeys)
 
-	samewrap(Teleport, integer(1), integer(2))
-	samewrap(SetSP, integer(1), integer(2))
-	samewrapRetVal(GetMapID, push(val); return 1;)
+	samewrap(EnableAutoPortal)
+	samewrap(DisableAutoPortal)
 
-	samewrap(HookMove)
-	samewrap(UnHookMove)
-	samewrap(SetMove, integer(1), integer(2))
+	samewrap(Teleport, integer(1), integer(2))
+
+	samewrap(HookSP)
+	samewrap(UnHookSP)
+	samewrap(SetSP, integer(1), integer(2))
 
 	samewrap(WaitForBreath)
+
+	samewrapRetVal(GetMapID, push(val); return 1;)
+	samewrapRetVal(GetMobCount, push(val); return 1;)
+	samewrapRetVal(GetMobClosest, POINT2table(val); return 1;)
+	samewrapRetVal(GetChar, map2table<int32_t>(val, push);  return 1;)
+	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
+	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
+	samewrapRetVal(GetMap, RECT2table(val); return 1;)
+
+	samewrapRetVal(SendPacket, push(val); return 1; , lua_tostring(L, 1))
+
+	samewrap(SetMoveDelay, integer(1))
+	samewrap(SetMoveXOff, integer(1))
+	samewrap(SetRopePollDelay, integer(1))
+	
+	samewrap(HookMove)
+	samewrap(UnHookMove)
+	
+	samewrap(SetMove, integer(1), integer(2))
 
 	samewrap(MoveX, integer(1))
 	samewrap(MoveXOff, integer(1), integer(2))
 	samewrap(MoveXOffNoStop, integer(1), integer(2))
-	samewrap(SetMoveXOff, integer(1))
-	samewrap(SetMoveDelay, integer(1))
 
-	samewrap(SetRopePollDelay, integer(1))
 	samewrap(Rope, integer(1))
 	samewrap(RopeY, integer(1))
-
+	
 	samewrap(FaceLeft)
 	samewrap(FaceRight)
 
-	samewrap(KeyHoldFor, integer(1), integer(2))
-
-	samewrapRetVal(GetMobCount, push(val); return 1;)
-	samewrapRetVal(GetMobClosest, POINT2table(val); return 1;)
-	samewrapRetVal(GetChar, map2table<int32_t>(val, push);  return 1;)
-
-	samewrapRetVal(GetMap, RECT2table(val); return 1;)
-
-	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
-	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
-
-	samewrapRetVal(SendPacket, push(val); return 1;, lua_tostring(L, 1))
+	samewrap(MoveTowardsX, integer(1))
+	samewrap(MoveTowardsY, integer(1))
 
 	#undef space
 	#define space 

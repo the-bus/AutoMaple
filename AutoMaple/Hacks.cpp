@@ -16,23 +16,22 @@ uint32_t mOeax;
 atomic<uint8_t> pressKeys[kLen] = { 0 };
 atomic<uint8_t> holdKeys[kLen] = { 0 };
 
-map<const char *, int32_t> Char;
+map<const char *, double> Char;
 uint32_t MapID;
 
 int32_t MobCount;
 POINT MobClosest;
 pair<POINT *, uint64_t> Mobs;
-atomic<uint8_t> RefreshMobs = 0;
+atomic<uint8_t> RefreshMobs;
 
-atomic<uint8_t> RefreshRopes = 0;
 pair<RECT *, uint64_t> Ropes;
 RECT Map;
+atomic<uint8_t> RefreshRopes;
 
 int32_t Xoff;
 int32_t MoveDelay;
-int32_t FaceDelay;
 
-uint8_t Moved = 0;
+uint8_t Moved;
 
 void Hacks::KeySpam(int32_t k) {
 	pressKeys[k] = 2;
@@ -124,21 +123,22 @@ void Hacks::SetSP(int32_t x, int32_t y) {
 void __stdcall FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
 	Char["x"] =
-		round(
-			Deref<double>(
-				(Vec + VecXOff),
-				INT_MAX
-			)
+		Deref<double>(
+			(Vec + VecXOff),
+			INT_MAX
 		);
 	Char["y"] =
-		round(
-			Deref<double>(
-				(Vec + VecYOff),
-				INT_MAX
-			)
+		Deref<double>(
+			(Vec + VecYOff),
+			INT_MAX
 		);
 	Char["breath"] = DerefOff<uint32_t>(CharBase, CharBreathOff, -1);
 	Char["attackCount"] = DerefOff<uint32_t>(CharBase, CharAttackCountOff, -1);
+
+	//stats
+	Char["hp"] = DerefOff<uint32_t>(StatsBase, StatsHP, -1);
+	Char["mp"] = DerefOff<uint32_t>(StatsBase, StatsMP, -1);
+	Char["exp"] = DerefOff<double>(StatsBase, StatsEXP, -1);
 }
 void __stdcall FetchMapInfo() {
 	MapID = DerefOff<uint32_t>(MyMapInfo, MyMapIDOff, 0);
@@ -264,7 +264,7 @@ pair<RECT *, uint64_t> Hacks::GetRopes() {
 		Sleep(0);
 	return Ropes;
 }
-map<const char *, int32_t> Hacks::GetChar() {
+map<const char *, double> Hacks::GetChar() {
 	WaitForFetch();
 	return Char;
 }
@@ -484,4 +484,15 @@ bool Hacks::SendPacket(const char * packet) {
 	if (!p.Parse(temp) || !p.Send())
 		return false;
 	return true;
+}
+void Hacks::Reset() {
+	DisableAutoPortal();
+	UnHookMove();
+	UnHookSP();
+	ResetKeys();
+	tX = tY = sX = sY = mX = mY = 0;
+	RefreshRopes = 0;
+	RefreshMobs = 0;
+	Moved = 0;
+	//UnHookFrame();
 }

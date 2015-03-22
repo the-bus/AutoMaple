@@ -7,6 +7,7 @@ public:
 	//not in the lua api:
 	static void HookFrame();
 	static void UnHookFrame();
+	static void Reset();
 
 	//in the lua api:
 	//prepend all methods with "maple."
@@ -44,10 +45,12 @@ public:
 	static int32_t GetMapID(); //returns the current map's id
 	static int32_t GetMobCount(); //returns the number of mobs
 	static POINT GetMobClosest(); //returns the closest mob as a point
-	static map<const char *, int32_t> GetChar();
+	static map<const char *, double> GetChar();
 		/* returns the character as a point (x and y)
 		also has the attackCount
-		and time until breath in milliseconds as breath */
+		and time until breath in milliseconds as breath 
+		mp and hp
+		exp as a decimal percentage value */
 	static pair<POINT *, uint64_t> GetMobs(); //returns a table of mobs as points
 	static pair<RECT *, uint64_t> GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle

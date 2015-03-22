@@ -32,3 +32,9 @@ HWND WINAPI FindProcessWindow(__in_z LPCSTR lpcszWindowClass, __in DWORD dwProce
 	}
 	return NULL;
 }
+void GetFilePathExe(char * buf, const char * file, uint64_t sz) {
+	GetModuleFileNameA(NULL, buf, sz);
+	PathRemoveFileSpecA(buf);
+	strcat_s(buf, sz, "\\");
+	strcat_s(buf, sz, file);
+}

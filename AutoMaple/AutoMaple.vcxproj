@@ -47,6 +47,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>LuaScripter</TargetName>
     <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

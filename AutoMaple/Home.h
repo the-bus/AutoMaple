@@ -34,10 +34,17 @@ namespace AutoMaple {
 				delete components;
 			}
 		}
-	private: System::Windows::Forms::Button^  button1;
-	private: System::Windows::Forms::Button^  button2;
+
+
 	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel1;
 	private: System::Windows::Forms::Timer^  timer1;
+	private: System::Windows::Forms::Button^  button1;
+	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel2;
+	private: System::Windows::Forms::TextBox^  textBox1;
+	private: System::Windows::Forms::Label^  label1;
+	private: System::Windows::Forms::Button^  button3;
+
 	protected:
 
 
@@ -58,50 +65,118 @@ namespace AutoMaple {
 		void InitializeComponent(void)
 		{
 			this->components = (gcnew System::ComponentModel::Container());
+			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->button3 = (gcnew System::Windows::Forms::Button());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
-			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->tableLayoutPanel2 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
+			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->tableLayoutPanel1->SuspendLayout();
+			this->tableLayoutPanel2->SuspendLayout();
 			this->SuspendLayout();
+			// 
+			// tableLayoutPanel1
+			// 
+			this->tableLayoutPanel1->ColumnCount = 1;
+			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle()));
+			this->tableLayoutPanel1->Controls->Add(this->button3, 0, 1);
+			this->tableLayoutPanel1->Controls->Add(this->button1, 0, 3);
+			this->tableLayoutPanel1->Controls->Add(this->button2, 0, 2);
+			this->tableLayoutPanel1->Controls->Add(this->tableLayoutPanel2, 0, 0);
+			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
+			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
+			this->tableLayoutPanel1->RowCount = 4;
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
+			this->tableLayoutPanel1->Size = System::Drawing::Size(288, 249);
+			this->tableLayoutPanel1->TabIndex = 2;
+			// 
+			// button3
+			// 
+			this->button3->AutoSize = true;
+			this->button3->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
+			this->button3->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->button3->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
+			this->button3->Location = System::Drawing::Point(3, 65);
+			this->button3->Name = L"button3";
+			this->button3->Size = System::Drawing::Size(282, 56);
+			this->button3->TabIndex = 5;
+			this->button3->Text = L"Open file in default program";
+			this->button3->UseVisualStyleBackColor = true;
+			this->button3->Click += gcnew System::EventHandler(this, &Home::button3_Click);
 			// 
 			// button1
 			// 
+			this->button1->AutoSize = true;
+			this->button1->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->button1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->button1->Location = System::Drawing::Point(3, 3);
+			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
+			this->button1->Location = System::Drawing::Point(3, 189);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(278, 201);
-			this->button1->TabIndex = 0;
-			this->button1->Text = L"Run test.lua from the MapleStory folder";
+			this->button1->Size = System::Drawing::Size(282, 57);
+			this->button1->TabIndex = 3;
+			this->button1->Text = L"Run file from the MapleStory folder";
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &Home::button1_Click);
 			// 
 			// button2
 			// 
+			this->button2->AutoSize = true;
+			this->button2->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->button2->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->button2->Location = System::Drawing::Point(3, 210);
+			this->button2->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
+			this->button2->Location = System::Drawing::Point(3, 127);
 			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(278, 202);
-			this->button2->TabIndex = 1;
+			this->button2->Size = System::Drawing::Size(282, 56);
+			this->button2->TabIndex = 2;
 			this->button2->Text = L"Stop script";
 			this->button2->UseVisualStyleBackColor = true;
 			this->button2->Click += gcnew System::EventHandler(this, &Home::button2_Click);
 			// 
-			// tableLayoutPanel1
+			// tableLayoutPanel2
 			// 
-			this->tableLayoutPanel1->ColumnCount = 1;
-			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
-				50)));
-			this->tableLayoutPanel1->Controls->Add(this->button1, 0, 0);
-			this->tableLayoutPanel1->Controls->Add(this->button2, 0, 1);
-			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
-			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
-			this->tableLayoutPanel1->RowCount = 2;
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
-			this->tableLayoutPanel1->Size = System::Drawing::Size(284, 415);
-			this->tableLayoutPanel1->TabIndex = 2;
+			this->tableLayoutPanel2->ColumnCount = 1;
+			this->tableLayoutPanel2->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle()));
+			this->tableLayoutPanel2->Controls->Add(this->textBox1, 0, 1);
+			this->tableLayoutPanel2->Controls->Add(this->label1, 0, 0);
+			this->tableLayoutPanel2->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->tableLayoutPanel2->Location = System::Drawing::Point(3, 3);
+			this->tableLayoutPanel2->Name = L"tableLayoutPanel2";
+			this->tableLayoutPanel2->RowCount = 2;
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
+			this->tableLayoutPanel2->Size = System::Drawing::Size(282, 56);
+			this->tableLayoutPanel2->TabIndex = 4;
+			// 
+			// textBox1
+			// 
+			this->textBox1->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->textBox1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
+			this->textBox1->Location = System::Drawing::Point(3, 31);
+			this->textBox1->Name = L"textBox1";
+			this->textBox1->Size = System::Drawing::Size(276, 23);
+			this->textBox1->TabIndex = 5;
+			this->textBox1->Text = L"test.lua";
+			// 
+			// label1
+			// 
+			this->label1->AutoSize = true;
+			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
+			this->label1->Location = System::Drawing::Point(3, 0);
+			this->label1->Name = L"label1";
+			this->label1->Size = System::Drawing::Size(245, 17);
+			this->label1->TabIndex = 0;
+			this->label1->Text = L"File to load from maplestory directory:";
 			// 
 			// timer1
 			// 
@@ -112,7 +187,7 @@ namespace AutoMaple {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(284, 415);
+			this->ClientSize = System::Drawing::Size(288, 249);
 			this->Controls->Add(this->tableLayoutPanel1);
 			this->Name = L"Home";
 			this->Text = L"Home";
@@ -120,6 +195,9 @@ namespace AutoMaple {
 			this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &Home::Home_FormClosed);
 			this->Load += gcnew System::EventHandler(this, &Home::Home_Load);
 			this->tableLayoutPanel1->ResumeLayout(false);
+			this->tableLayoutPanel1->PerformLayout();
+			this->tableLayoutPanel2->ResumeLayout(false);
+			this->tableLayoutPanel2->PerformLayout();
 			this->ResumeLayout(false);
 
 		}
@@ -130,5 +208,6 @@ namespace AutoMaple {
 		private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e);
 		private: System::Void Home_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e);
 		private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e);
+		private: System::Void button3_Click(System::Object^  sender, System::EventArgs^  e);
 };
 }

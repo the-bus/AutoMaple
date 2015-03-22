@@ -13,12 +13,20 @@ void MessageInt(int32_t a) {
 	MsgBox("%d", a);
 }
 
+void MessageNum(double a) {
+	MsgBox("%f", a);
+}
+
 void push(int32_t n) {
 	lua_pushinteger(L, n);
 }
 
 void push(bool b) {
 	lua_pushboolean(L, b);
+}
+
+void push(double d) {
+	lua_pushnumber(L, d);
 }
 
 void POINT2table(POINT p) {
@@ -76,6 +84,7 @@ void RECT2table(RECT r) {
 
 
 #define integer(n) lua_tointeger(L, n)
+#define number(n) lua_tonumber(L, n)
 
 ///////////////////////////////////////
 
@@ -105,7 +114,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrapRetVal(GetMapID, push(val); return 1;)
 	samewrapRetVal(GetMobCount, push(val); return 1;)
 	samewrapRetVal(GetMobClosest, POINT2table(val); return 1;)
-	samewrapRetVal(GetChar, map2table<int32_t>(val, push);  return 1;)
+	samewrapRetVal(GetChar, map2table<double>(val, push);  return 1;)
 	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
 	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
 	samewrapRetVal(GetMap, RECT2table(val); return 1;)
@@ -141,6 +150,7 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(KeyPressNoHook, integer(1))
 	samewrap(MessageInt, integer(1))
+	samewrap(MessageNum, number(1))
 	samewrap(Message, lua_tolstring(L, 1, NULL))
 
 	{ NULL, NULL }
@@ -160,8 +170,7 @@ static const luaL_Reg meta[] = {
 
 ///////////////////////////////////////
 
-void initLua() {
-
+void initLua(const char * buf) {
 	/* initialize Lua */
 	L = luaL_newstate();
 
@@ -177,11 +186,6 @@ void initLua() {
 	lua_setmetatable(L, -2);
 
 	/* run the script */
-	char file[] = "\\test.lua";
-	char buf[32768];
-	GetModuleFileName(NULL, buf, 32768);
-	PathRemoveFileSpec(buf);
-	strcat_s(buf, file);
 	int error = luaL_loadfile(L, buf);
 	if (error) // if non-0, then an error
 	{

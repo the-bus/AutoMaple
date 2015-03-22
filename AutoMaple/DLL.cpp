@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include "inc.h"
 
 //some stuff is taken from Derp trainer
 VOID setTokenPrivilege(LPCSTR cPrivilege, HANDLE hProc)

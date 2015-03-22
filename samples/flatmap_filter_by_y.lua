@@ -27,6 +27,7 @@ function MoveToMob()
 		charX = maple.GetChar().x
 		diffX = math.abs(mobX - charX)
 		if diffX < 50 then
+			maple.SetMove(0, 0)
 			break
 		end
 		maple.MoveTowardsX(mobX)
@@ -34,14 +35,13 @@ function MoveToMob()
 end
 
 function AttackWait()
-	maple.KeySpam(0x11)
+	maple.KeyHoldFor(0x11, 1000)
 	maple.Wait(1000)
-	maple.KeyUnSpam(0x11)
 end
 
 maple.HookMove()
-maple.SetMoveDelay(0)
+maple.SetMoveDelay(300)
 while true do
 	MoveToMob()
-	--AttackWait()
+	AttackWait()
 end

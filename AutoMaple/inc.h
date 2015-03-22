@@ -19,9 +19,12 @@
 #include <chrono>
 #include <limits.h>
 
+//#define WIN
+
 #ifndef _M_CEE
 	#include <atomic>
 #endif
+
 using namespace std;
 
 //libs
@@ -55,14 +58,16 @@ using namespace std;
 #define CharVecOff 0x517C
 #define VecXOff 0xAC
 #define VecYOff (VecXOff + 8)
-//#define CharXOff 0xCCC4
-//#define CharYOff (CharXOff + 4)
 #define MapBase 0x01E2B1EC
 #define MapLeftOff 0x0000001C
 #define MapTopOff (MapLeftOff + 4)
 #define MapRightOff (MapLeftOff + 8)
 #define MapBottomOff (MapLeftOff + 12)
 #define RopeOff 0xB4
+#define StatsBase 0x01E26B18
+#define StatsHP 0x00002734
+#define StatsMP (StatsHP+4)
+#define StatsEXP 0x00002658
 
 //6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
 
@@ -94,7 +99,8 @@ extern HWND hwnd;
 //macros
 
 #define jmp(frm, to) (int)(((int)(to) - (int)(frm)) - 5)
-#define OpenThread(void) CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&void, NULL, NULL, NULL);
+#define OpenThread(func) CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&func, NULL, NULL, NULL);
+#define OpenThreadArg(func, arg) CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&func, arg, NULL, NULL);
 #define CloseThread(Handle) TerminateThread(Handle, 0);
 #define STRINGIFY(x) #x
 #define Message(ach) MessageBox(NULL, ach, "", MB_OK|MB_ICONEXCLAMATION)
@@ -106,6 +112,7 @@ extern HWND hwnd;
 int32_t MsgBox(PSTR sz, ...);
 uint32_t VKtoMS(uint32_t key);
 HWND WINAPI FindProcessWindow(__in_z LPCSTR lpcszWindowClass, __in DWORD dwProcessId);
+void GetFilePathExe(char * buf, const char * file, uint64_t sz);
 template<typename T>
 T Deref(uint64_t addr, T bad) {
 	__try { return *(T *)addr; }
@@ -117,6 +124,6 @@ T DerefOff(uint64_t addr, int64_t off, T bad) {
 }
 
 //etc
-void initLua();
+void initLua(const char * buf);
 void Close();
 void clean();

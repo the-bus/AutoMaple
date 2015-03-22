@@ -120,7 +120,7 @@ T Deref(uint64_t addr, T bad) {
 }
 template<typename T>
 T DerefOff(uint64_t addr, int64_t off, T bad) {
-	return Deref<T>(Deref<T>(addr, bad) + off, bad);
+	return Deref<T>(Deref<uint64_t>(addr, bad) + off, bad);
 }
 
 //etc

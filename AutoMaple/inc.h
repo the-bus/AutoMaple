@@ -17,6 +17,7 @@
 #include <map>
 #include <unordered_map>
 #include <chrono>
+#include <limits.h>
 
 #ifndef _M_CEE
 	#include <atomic>
@@ -49,6 +50,7 @@ using namespace std;
 #define MyMapIDOff 0x13e4
 #define AutoPortal 0x014E4F1A
 #define CharBase 0x01E26B14
+#define CharAttackCountOff 0x0000BF5C
 #define CharBreathOff 0x000008B0
 #define CharVecOff 0x517C
 #define VecXOff 0xAC

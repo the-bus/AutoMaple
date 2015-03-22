@@ -44,7 +44,10 @@ public:
 	static int32_t GetMapID(); //returns the current map's id
 	static int32_t GetMobCount(); //returns the number of mobs
 	static POINT GetMobClosest(); //returns the closest mob as a point
-	static POINT GetChar(); //returns the character as a point
+	static map<const char *, int32_t> GetChar();
+		/* returns the character as a point (x and y)
+		also has the attackCount
+		and time until breath in milliseconds as breath */
 	static pair<POINT *, uint64_t> GetMobs(); //returns a table of mobs as points
 	static pair<RECT *, uint64_t> GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle
@@ -79,10 +82,10 @@ public:
 		static void FaceRight(); //moves right to face right, requires SetFaceDelay
 
 	/* if you call a function that returns a point, it's x and y values can be accessed using .x or .y
-	example: maple.GetChar().x */
+	example: maple.GetMobClosest().x */
 
 	/* if you call a function that returns a rect(angle), it will have a table (aka array/list) with 2 points
 	the first point in a rectangle is the bottom left point
 	the second point in a rectangle is the top right point
-	bottom y value of a rope example: maple.GetRopes()[0][0].y */
+	bottom y value of the first rope example: maple.GetRopes()[0][0].y */
 };

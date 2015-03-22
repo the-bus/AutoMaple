@@ -16,9 +16,8 @@ uint32_t mOeax;
 atomic<uint8_t> pressKeys[kLen] = { 0 };
 atomic<uint8_t> holdKeys[kLen] = { 0 };
 
-POINT Char;
+map<const char *, int32_t> Char;
 uint32_t MapID;
-uint32_t CharBreath;
 
 int32_t MobCount;
 POINT MobClosest;
@@ -124,27 +123,28 @@ void Hacks::SetSP(int32_t x, int32_t y) {
 }
 void __stdcall FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
-	Char.x =
+	Char["x"] =
 		round(
 			Deref<double>(
 				(Vec + VecXOff),
-				2147483647
+				INT_MAX
 			)
 		);
-	Char.y =
+	Char["y"] =
 		round(
 			Deref<double>(
 				(Vec + VecYOff),
-				2147483647
+				INT_MAX
 			)
 		);
-	CharBreath = DerefOff<uint32_t>(CharBase, CharBreathOff, 0);
+	Char["breath"] = DerefOff<uint32_t>(CharBase, CharBreathOff, -1);
+	Char["attackCount"] = DerefOff<uint32_t>(CharBase, CharAttackCountOff, -1);
 }
 void __stdcall FetchMapInfo() {
 	MapID = DerefOff<uint32_t>(MyMapInfo, MyMapIDOff, 0);
 }
 void __stdcall FetchMob() {
-	POINT closest = { 2147483647 };
+	POINT closest = { INT_MAX };
 	long area = 9999999;
 	// mob base
 	uint32_t mob = Deref(MobBase, 0);
@@ -167,19 +167,19 @@ void __stdcall FetchMob() {
 	while (mob) {
 		uint32_t data = Deref(mob + Mob2Off + 0x10, 0); // MobData1
 		if (!data)
-			return;
+			goto end;
 		data = Deref(data + Mob3Off, 0); // MobData2
 		if (!data)
-			return;
+			goto end;
 		data = Deref(data + Mob4Off, 0); // MobData3
 		if (!data)
-			return;
+			goto end;
 		POINT pos = *(POINT *)(data + MobXOff);
 		POINT inv = *(POINT *)(data + MobXOff + sizeof(POINT));
 		if (inv.x || inv.y) {
 			POINT diff;
-			diff.x = pos.x - Char.x;
-			diff.y = pos.y - Char.y;
+			diff.x = pos.x - Char["x"];
+			diff.y = pos.y - Char["y"];
 			long curarea = diff.x * diff.x + diff.y * diff.y;
 			if (curarea < area) {
 				area = curarea;
@@ -218,13 +218,13 @@ void __stdcall FetchMap() {
 		Rope += 0x2C;
 		uint32_t i = 0;
 		for (; i < RopeCount; i++) {
-			int32_t x = Deref(Rope, 2147483647);
+			int32_t x = Deref(Rope, INT_MAX);
 			//if (!InBoundsX(x))
 			//	break;
-			int32_t y1 = Deref(Rope + 4, 2147483647);
+			int32_t y1 = Deref(Rope + 4, INT_MAX);
 			//if (!InBoundsY(y1))
 			//	break;
-			int32_t y2 = Deref(Rope + 8, 2147483647);
+			int32_t y2 = Deref(Rope + 8, INT_MAX);
 			//if (!InBoundsY(y2))
 			//	break;
 			//rects.push_back(RECT{ x, y2, x, y1 });
@@ -264,7 +264,7 @@ pair<RECT *, uint64_t> Hacks::GetRopes() {
 		Sleep(0);
 	return Ropes;
 }
-POINT Hacks::GetChar() {
+map<const char *, int32_t> Hacks::GetChar() {
 	WaitForFetch();
 	return Char;
 }
@@ -287,8 +287,8 @@ POINT Hacks::GetMobClosest() {
 void Hacks::WaitForBreath() {
 	do {
 		WaitForFetch();
-		Sleep(CharBreath);
-	} while (CharBreath != 0);
+		Sleep(Char["breath"]);
+	} while (Char["breath"] != 0);
 	return;
 }
 __declspec(naked) void __stdcall MoveCave() {
@@ -342,14 +342,14 @@ void Hacks::SetMoveXOff(int32_t off) {
 	Xoff = off;
 }
 void Hacks::MoveXOffNoStop(int32_t targetX, int32_t off) {
-	bool right = targetX > GetChar().x;
+	bool right = targetX > GetChar()["x"];
 	if (right) {
 		SetMove(1, 0);
-		while (targetX - off > GetChar().x);
+		while (targetX - off > GetChar()["x"]);
 	}
 	else {
 		SetMove(-1, 0);
-		while (targetX + off < GetChar().x);
+		while (targetX + off < GetChar()["x"]);
 	}
 }
 void Hacks::MoveXOff(int32_t targetX, int32_t off) {
@@ -368,20 +368,20 @@ void Hacks::Rope(int32_t dir) {
 	SetMove(0, dir);
 	int32_t oY; //original y
 	do {
-		oY = GetChar().y;
+		oY = GetChar()["y"];
 		Sleep(RopePollDelay);
-	} while (GetChar().y != oY);
+	} while (GetChar()["y"] != oY);
 	SetMove(0, 0);
 }
 void Hacks::RopeY(int32_t targetY) {
-	bool down = targetY > GetChar().y;
+	bool down = targetY > GetChar()["y"];
 	if (down) {
 		SetMove(0, 1);
-		while (targetY > GetChar().y);
+		while (targetY > GetChar()["y"]);
 	}
 	else {
 		SetMove(0, -1);
-		while (targetY < GetChar().y);
+		while (targetY < GetChar()["y"]);
 	}
 	SetMove(0, 0);
 }

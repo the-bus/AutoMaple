@@ -13,11 +13,19 @@ void MessageInt(int32_t a) {
 	MsgBox("%d", a);
 }
 
+void push(int32_t n) {
+	lua_pushinteger(L, n);
+}
+
+void push(bool b) {
+	lua_pushboolean(L, b);
+}
+
 void POINT2table(POINT p) {
 	lua_createtable(L, 0, 2);
-	lua_pushinteger(L, p.x);
+	push(p.x);
 	lua_setfield(L, -2, "x");
-	lua_pushinteger(L, p.y);
+	push(p.y);
 	lua_setfield(L, -2, "y");
 }
 
@@ -27,6 +35,16 @@ void arr2table(T * a, void (f)(T), size_t len) {
 	for (uint32_t i = 0; i < len; i++) {
 		f(a[i]);
 		lua_rawseti(L, -2, i);
+	}
+}
+
+template<typename T>
+void map2table(map<const char *, T> m, void (f)(T n)) {
+	lua_createtable(L, 0, m.size());
+	for (auto p : m)
+	{
+		f(p.second);
+		lua_setfield(L, -2, p.first);
 	}
 }
 
@@ -79,7 +97,7 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(Teleport, integer(1), integer(2))
 	samewrap(SetSP, integer(1), integer(2))
-	samewrapRetVal(GetMapID, lua_pushinteger(L, val); return 1;)
+	samewrapRetVal(GetMapID, push(val); return 1;)
 
 	samewrap(HookMove)
 	samewrap(UnHookMove)
@@ -102,16 +120,16 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(KeyHoldFor, integer(1), integer(2))
 
-	samewrapRetVal(GetMobCount, lua_pushinteger(L, val); return 1;)
+	samewrapRetVal(GetMobCount, push(val); return 1;)
 	samewrapRetVal(GetMobClosest, POINT2table(val); return 1;)
-	samewrapRetVal(GetChar, POINT2table(val); return 1;)
+	samewrapRetVal(GetChar, map2table<int32_t>(val, push);  return 1;)
 
 	samewrapRetVal(GetMap, RECT2table(val); return 1;)
 
 	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
 	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
 
-	samewrapRetVal(SendPacket, lua_pushboolean(L, val); return 1;, lua_tostring(L, 1))
+	samewrapRetVal(SendPacket, push(val); return 1;, lua_tostring(L, 1))
 
 	#undef space
 	#define space 
@@ -175,7 +193,6 @@ void initLua() {
 	}
 	else
 	{
-		Message("No errors");
 		// if not an error, then the top of the stack will be the function to call to run the file
 		lua_pcall(L, 0, LUA_MULTRET, 0); // once again, returns non-0 on error, you should probably add a little check
 	}

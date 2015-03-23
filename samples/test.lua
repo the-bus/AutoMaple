@@ -12,10 +12,17 @@ function JumpWait()
 	maple.KeyPress(0x12) --alt jump
 	maple.Wait(300)
 end
+function JumpWaitRope()
+	maple.KeyDown(0x12)
+	maple.Wait(40)
+end
 while true do
+	JumpWait()
+	maple.KeyPress(0x2E) --buff Del key
+	maple.Wait(1000) --wait 1 second
 	maple.KeySpam(0x5A) --z loot
 	maple.MoveXOffNoStop(17, ropeOffset)
-	maple.KeyDown(0x12)
+	JumpWaitRope()
 	maple.RopeY(-193) --going up
 	maple.KeyUp(0x12)
 	maple.MoveX(285)
@@ -25,7 +32,7 @@ while true do
 	AttackWait()
 	maple.KeySpam(0x5A)
 	maple.MoveXOffNoStop(379, ropeOffset)
-	maple.KeyDown(0x12)
+	JumpWaitRope()
 	maple.RopeY(-553)
 	maple.KeyUp(0x12)
 	maple.MoveX(855)

@@ -90,8 +90,8 @@ void RECT2table(RECT r) {
 
 static const luaL_Reg mapleLib[] = {
 	
-	#undef space
-	#define space Hacks
+#undef space
+#define space Hacks
 	samewrap(KeyDown, integer(1))
 	samewrap(KeyUp, integer(1))
 	samewrap(KeyPress, integer(1))
@@ -119,15 +119,15 @@ static const luaL_Reg mapleLib[] = {
 	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
 	samewrapRetVal(GetMap, RECT2table(val); return 1;)
 
-	samewrapRetVal(SendPacket, push(val); return 1; , lua_tostring(L, 1))
+	samewrapRetVal(SendPacket, push(val); return 1;, lua_tostring(L, 1))
 
 	samewrap(SetMoveDelay, integer(1))
 	samewrap(SetMoveXOff, integer(1))
 	samewrap(SetRopePollDelay, integer(1))
-	
+
 	samewrap(HookMove)
 	samewrap(UnHookMove)
-	
+
 	samewrap(SetMove, integer(1), integer(2))
 
 	samewrap(MoveX, integer(1))
@@ -136,15 +136,15 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(Rope, integer(1))
 	samewrap(RopeY, integer(1))
-	
+
 	samewrap(FaceLeft)
 	samewrap(FaceRight)
 
 	samewrap(MoveTowardsX, integer(1))
 	samewrap(MoveTowardsY, integer(1))
 
-	#undef space
-	#define space 
+#undef space
+#define space 
 	samewrap(Sleep, integer(1))
 	wrap(Sleep, "Wait", integer(1))
 
@@ -156,17 +156,32 @@ static const luaL_Reg mapleLib[] = {
 	{ NULL, NULL }
 };
 
-int index(lua_State *L) {
-	Message("Error! The following does not exist in the maple table:");
-	Message(lua_tolstring(L, -1, NULL));
+int index(lua_State *L, const char * c) {
+	lua_Debug ar;
+	lua_getstack(L, 1, &ar);
+	lua_getinfo(L, "nSl", &ar);
+	uint32_t line = ar.currentline;
+	const char emsg[] = "Error! The following does not exist in ";
+	uint32_t sz;
+	const char * err = lua_tolstring(L, -1, &sz);
+#define lineMsg "\nLine: "
+	char ln[10 + sizeof(lineMsg) + 1];
+	sprintf_s(ln, lineMsg "%d", line);
+	sz += strlen(c) + sizeof(emsg) + strlen(ln) + 1;
+	char * msg = new char[sz];
+	if (!msg)
+		goto end;
+	msg[0] = '\0';
+	strcat_s(msg, sz, emsg);
+	strcat_s(msg, sz, c);
+	strcat_s(msg, sz, err);
+	strcat_s(msg, sz, ln);
+	Message(msg);
+	end:
+	delete msg;
 	clean();
 	return 0;
 }
-
-static const luaL_Reg meta[] = {
-	{ "__index", index },
-	{ NULL, NULL }
-};
 
 ///////////////////////////////////////
 
@@ -177,12 +192,25 @@ void initLua(const char * buf) {
 	/* load Lua base libraries */
 	luaL_openlibs(L);
 
+	lua_getglobal(L, "_G");
+	luaL_newmetatable(L, "_GMETA");
+	lua_pushcclosure(L, [](lua_State *L) -> int {
+		index(L, "global: ");
+		return 0;
+	}, 0);
+	lua_setfield(L, -2, "__index");
+	lua_setmetatable(L, -2);
+
 	luaL_newlib(L, mapleLib);
-	lua_pushvalue(L, -1);
 	lua_setglobal(L, "maple");
 
-	luaL_newmetatable(L, "MyMetaTableFallback");
-	luaL_setfuncs(L, meta, 0);
+	lua_getglobal(L, "maple");
+	luaL_newmetatable(L, "mapleMETA");
+	lua_pushcclosure(L, [](lua_State *L) -> int {
+		index(L, "maple: ");
+		return 0;
+	}, 0);
+	lua_setfield(L, -2, "__index");
 	lua_setmetatable(L, -2);
 
 	/* run the script */

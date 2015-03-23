@@ -65,34 +65,11 @@ void Hacks::DisableAutoPortal() {
 	byte disable = 0x74;
 	Memory::Write((void*)AutoPortal, &disable, 1);
 }
-__declspec(naked) void __stdcall RawTeleport() {
-	__asm {
-		mov tOesi,esi
-		mov eax, CharBase
-		mov esi, [eax] //Character base
-		lea ecx, [esi + 04]
-		//8B ? ? ? ? 00 85 C0 74 ? 83 ? ? 74 ? 83 ? ? C3 33 C0 C3 CC CC CC CC CC CC CC CC CC CC 8B ? ? ? ? 00 85 C0 74 ? 83 ? ? 74 ? 83 ? ? C3 33 C0 C3 CC CC CC CC CC CC CC CC CC CC 8B ? 24 ? 56 50 8B ? 8B
-		mov edx, 0x01584600
-		call edx
-		test eax, eax
-		je TeleportEnd
-		push tY //Y Coord
-		push tX //X Coord
-		push 00
-		mov ecx, eax
-		//8B ? 24 ? 8B ? ? 8B ? ? ? 8D ? ? 8B ? ? ? ? ? ? FF ? 85 C0 ? ? ? ? ? ? ? ? ? E8 [1st Result]
-		mov edx, 0x01600FE0
-		call edx
-		
-		TeleportEnd:
-		mov esi,tOesi
-		ret
-	}
-}
+typedef void(__fastcall *pfnCVecCtrlUser__OnTeleport)(void *pthis, void *edx, void *, long x, long y);
+static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01600FE0; /* v160.3 */
 void Hacks::Teleport(int32_t x, int32_t y) {
-	tX = x;
-	tY = y;
-	RawTeleport();
+	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
+	CVecCtrlUser__OnTeleport((uint8_t *)Vec + 4, NULL, NULL, x, y);
 }
 __declspec(naked) void __stdcall SPCave() {
 	__asm {

@@ -1,6 +1,6 @@
 --Sample bot for Mysterious Path 3 (works on my Angelic Buster, not super reliable)
 offset = 30
-ropeOffset = offset + 30 --stop a bit more before ropes so we can jump while moving to get on ropes reliably
+ropeOffset = offset + 40 --stop a bit more before ropes so we can jump while moving to get on ropes reliably
 maple.HookMove()
 maple.SetMoveXOff(offset)
 maple.SetMoveDelay(400)

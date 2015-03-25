@@ -1,10 +1,10 @@
 #include "Hacks.h"
+#include <concurrent_queue.h>
 
-int32_t tX, tY;
 int32_t sX, sY;
 int32_t mX, mY;
 
-atomic<uint8_t> fetchActive = 0;
+atomic<uint8_t> frameActive = 0;
 
 uint32_t fRet;
 uint32_t fOesi; //frame cave's original esi
@@ -33,6 +33,33 @@ int32_t MoveDelay;
 
 uint8_t Moved;
 
+time_t timeout;
+
+Concurrency::concurrent_queue<void(*)()> functions;
+
+#define timeoutWhile(cond) \
+do { \
+		time_t stime = time(NULL); \
+		while (cond && (timeout <= 0 || time(NULL) - stime < timeout)); \
+		ret = !(cond); \
+} while (0);
+#define DoFuncFrameWrap(func) \
+void Hacks::func() { \
+	DoFuncFrame(Do ## func); \
+}
+void WaitForFrame() {
+	while (frameActive != 0)
+		Sleep(0);
+}
+void WaitForReframe() {
+	while (frameActive != 1)
+		Sleep(0);
+}
+void DoFuncFrame(void(*f)()) {
+	WaitForFrame();
+	functions.push(f);
+	WaitForReframe();
+}
 void Hacks::KeySpam(int32_t k) {
 	pressKeys[k] = 2;
 }
@@ -57,14 +84,20 @@ void Hacks::KeyUp(int32_t k)
 		Sleep(0);
 	return;
 }
-void Hacks::EnableAutoPortal() {
+void DoEnableAutoPortal() {
 	byte enable = 0x75;
 	Memory::Write((void*)AutoPortal, &enable, 1);
 }
-void Hacks::DisableAutoPortal() {
+DoFuncFrameWrap(EnableAutoPortal)
+void DoDisableAutoPortal() {
 	byte disable = 0x74;
 	Memory::Write((void*)AutoPortal, &disable, 1);
 }
+DoFuncFrameWrap(DisableAutoPortal)
+/*translates to:
+void Hacks::DisableAutoPortal() {
+	DoFuncFrame(DoDisableAutoPortal);
+}*/
 typedef void(__fastcall *pfnCVecCtrlUser__OnTeleport)(void *pthis, void *edx, void *, long x, long y);
 static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01600FE0; /* v160.3 */
 void Hacks::Teleport(int32_t x, int32_t y) {
@@ -85,30 +118,32 @@ __declspec(naked) void __stdcall SPCave() {
 		ret
 	}
 }
-void Hacks::HookSP() {
+void DoHookSP() {
 	uint32_t addr = (uint32_t)SPCave;
 	Memory::Write(SP, &addr, 4);
 }
-void Hacks::UnHookSP() {
+DoFuncFrameWrap(HookSP)
+void DoUnHookSP() {
 	uint32_t orig = SPOrig;
 	Memory::Write(SP, &orig, 4);
 }
+DoFuncFrameWrap(UnHookSP)
 void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;
 	sY = y;
 }
 void __stdcall FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
-	Char["x"] =
+	Char["x"] = round(
 		Deref<double>(
 			(Vec + VecXOff),
 			INT_MAX
-		);
-	Char["y"] =
+		));
+	Char["y"] = round(
 		Deref<double>(
 			(Vec + VecYOff),
 			INT_MAX
-		);
+		));
 	Char["breath"] = DerefOff<uint32_t>(CharBase, CharBreathOff, -1);
 	Char["attackCount"] = DerefOff<uint32_t>(CharBase, CharAttackCountOff, -1);
 
@@ -216,54 +251,48 @@ void __stdcall FetchMap() {
 	}
 }
 void __stdcall FetchAll() {
-	fetchActive = 1;
 	FetchChar();
 	FetchMapInfo();
 	FetchMob();
 	FetchMap();
-	fetchActive = 0;
-}
-void WaitForFetch() {
-	while (fetchActive != 0)
-		Sleep(0);
 }
 pair<POINT *, uint64_t> Hacks::GetMobs() {
-	WaitForFetch(); //wait if a fetch is currently active
+	WaitForFrame(); //wait if a fetch is currently active
 	RefreshMobs = 1; //tell the next fetch to refresh the mobs array
 	while (RefreshMobs != 0)
 		Sleep(0);
 	return Mobs;
 }
 pair<RECT *, uint64_t> Hacks::GetRopes() {
-	WaitForFetch(); //wait if a fetch is currently active
+	WaitForFrame(); //wait if a fetch is currently active
 	RefreshRopes = 1; //tell the next fetch to refresh the mobs array
 	while (RefreshRopes != 0)
 		Sleep(0);
 	return Ropes;
 }
 map<const char *, double> Hacks::GetChar() {
-	WaitForFetch();
+	WaitForFrame();
 	return Char;
 }
 RECT Hacks::GetMap() {
-	WaitForFetch();
+	WaitForFrame();
 	return Map;
 }
 int32_t Hacks::GetMapID() {
-	WaitForFetch();
+	WaitForFrame();
 	return MapID;
 }
 int32_t Hacks::GetMobCount() {
-	WaitForFetch();
+	WaitForFrame();
 	return MobCount;
 }
 POINT Hacks::GetMobClosest() {
-	WaitForFetch();
+	WaitForFrame();
 	return MobClosest;
 }
 void Hacks::WaitForBreath() {
 	do {
-		WaitForFetch();
+		WaitForFrame();
 		Sleep(Char["breath"]);
 	} while (Char["breath"] != 0);
 	return;
@@ -281,8 +310,8 @@ __declspec(naked) void __stdcall MoveCave() {
 		ret
 	}
 }
-void Hacks::HookMove() {
-	byte nops[] = {0x90,0x90,0x90,0x90,0x90,0x90};
+void DoHookMove() {
+	byte nops[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
 	Memory::Write(MoveDisable, &nops, 6);
 	byte opcode = 0xE9;
 	Memory::Write((void*)MoveJmp, &opcode, 1);
@@ -290,12 +319,14 @@ void Hacks::HookMove() {
 	Memory::Write((void*)(MoveJmp + 1), &distance, 4);
 	Memory::Write((void*)(MoveJmp + 5), &nops, 3);
 }
-void Hacks::UnHookMove() {
-	byte orig2[] = {0x89,0x7C,0x24,0x20,0x89,0x7C,0x24,0x1C};
+DoFuncFrameWrap(HookMove)
+void DoUnHookMove() {
+	byte orig2[] = { 0x89, 0x7C, 0x24, 0x20, 0x89, 0x7C, 0x24, 0x1C };
 	Memory::Write((void*)MoveJmp, &orig2, 8);
 	byte orig[] = { 0xFF, 0x15, 0xC0, 0xB8, 0xE3, 0x01 };
 	Memory::Write(MoveDisable, &orig, 6);
 }
+DoFuncFrameWrap(UnHookMove)
 void Hacks::ResetKeys() {
 	for (uint32_t i = 0; i < kLen; i++) {
 		if (holdKeys[i] == 1)
@@ -336,24 +367,27 @@ void Hacks::SetMoveDelay(int32_t delay) {
 void Hacks::SetMoveXOff(int32_t off) {
 	Xoff = off;
 }
-void Hacks::MoveXOffNoStop(int32_t targetX, int32_t off) {
+bool Hacks::MoveXOffNoStop(int32_t targetX, int32_t off) {
 	bool right = targetX > GetChar()["x"];
+	bool ret;
 	if (right) {
 		SetMove(1, 0);
-		while (targetX - off > GetChar()["x"]);
+		timeoutWhile(targetX - off > GetChar()["x"])
 	}
 	else {
 		SetMove(-1, 0);
-		while (targetX + off < GetChar()["x"]);
+		timeoutWhile(targetX + off < GetChar()["x"])
 	}
+	return ret;
 }
-void Hacks::MoveXOff(int32_t targetX, int32_t off) {
-	MoveXOffNoStop(targetX, off);
+bool Hacks::MoveXOff(int32_t targetX, int32_t off) {
+	bool ret = MoveXOffNoStop(targetX, off);
 	SetMove(0, 0);
 	Sleep(MoveDelay);
+	return ret;
 }
-void Hacks::MoveX(int32_t targetX) {
-	MoveXOff(targetX, Xoff);
+bool Hacks::MoveX(int32_t targetX) {
+	return MoveXOff(targetX, Xoff);
 }
 int32_t RopePollDelay;
 void Hacks::SetRopePollDelay(int32_t delay) {
@@ -368,17 +402,22 @@ void Hacks::Rope(int32_t dirY) {
 	} while (GetChar()["y"] != oY);
 	SetMove(0, 0);
 }
-void Hacks::RopeY(int32_t targetY) {
+void Hacks::SetTimeout(int32_t t) {
+	timeout = t;
+}
+bool Hacks::RopeY(int32_t targetY) {
 	bool down = targetY > GetChar()["y"];
+	bool ret;
 	if (down) {
 		SetMove(0, 1);
-		while (targetY > GetChar()["y"]);
+		timeoutWhile(targetY > GetChar()["y"])
 	}
 	else {
 		SetMove(0, -1);
-		while (targetY < GetChar()["y"]);
+		timeoutWhile(targetY < GetChar()["y"])
 	}
 	SetMove(0, 0);
+	return ret;
 }
 void Hacks::FaceLeft() {
 	SetMove(-1, 0);
@@ -396,6 +435,7 @@ void Hacks::KeyHoldFor(int32_t k, int32_t delay) {
 void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 	uint32_t Key = VKtoMS(VK) | mask;
 	__asm {
+		pushad
 		mov fOesi, esi
 		mov esi, [ServerBase] // Server Base (TSingleton<CWvsContext>)
 		mov ecx, [esi + 0xA4] // Window manager offset
@@ -405,6 +445,7 @@ void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 		mov edx, 0x0163AB10
 		call edx // key press function
 		mov esi, fOesi
+		popad
 	}
 }
 void __stdcall SendKeys() {
@@ -427,12 +468,16 @@ void __stdcall SendKeys() {
 	}
 }
 __declspec(naked) void __stdcall FrameCave() {
+	__asm pushad
+	frameActive = 1;
+	void (*f)();
+	while (functions.try_pop(f)) {
+		f();
+	}
+	SendKeys();
+	FetchAll();
+	frameActive = 0;
 	__asm {
-		pushad
-		call SendKeys
-		popad
-		pushad
-		call FetchAll
 		popad
 		push fRet
 		ret
@@ -441,7 +486,7 @@ __declspec(naked) void __stdcall FrameCave() {
 void Hacks::HookFrame() {
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
 	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
-	fRet = (uint32_t)(dispatchAddy) + 2;
+	fRet = (uint32_t)(dispatchAddy)+2;
 	byte opcode = 0xE9;
 	Memory::Write(dispatchAddy - 5, &opcode, 1);
 	uint32_t distance = jmp(dispatchAddy - 5, FrameCave);
@@ -467,9 +512,10 @@ void Hacks::Reset() {
 	UnHookMove();
 	UnHookSP();
 	ResetKeys();
-	tX = tY = sX = sY = mX = mY = 0;
+	sX = sY = mX = mY = 0;
 	RefreshRopes = 0;
 	RefreshMobs = 0;
 	Moved = 0;
+	timeout = 0;
 	//UnHookFrame();
 }

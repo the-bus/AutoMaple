@@ -65,6 +65,8 @@ void RECT2table(RECT r) {
 
 #define getval() auto val = 
 
+#define pushval() push(val); return 1;
+
 #define rawlambdawrap(func, in, ret, ...) \
 [](lua_State *L) { \
 	in space::func(__VA_ARGS__); \
@@ -79,9 +81,8 @@ void RECT2table(RECT r) {
 
 #define rawsamewrap(func, in, ret, ...) rawelementwrap(func, STRINGIFY(func), in, ret, __VA_ARGS__)
 #define samewrap(func, ...) rawsamewrap(func, ;, ;, __VA_ARGS__)
-#define samewrapRetVal(func, ret, ...) rawsamewrap(func, getval(), ret, __VA_ARGS__)
-#define samewrapRet(func, ret, ...) rawsamewrap(func, ;, ret, __VA_ARGS__)
-
+#define samewrapRetVal(func, ...) rawsamewrap(func, getval(), pushval(), __VA_ARGS__)
+#define samewrapVal(func, ret, ...) rawsamewrap(func, getval(), ret, __VA_ARGS__)
 
 #define integer(n) lua_tointeger(L, n)
 #define number(n) lua_tonumber(L, n)
@@ -111,15 +112,15 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(WaitForBreath)
 
-	samewrapRetVal(GetMapID, push(val); return 1;)
-	samewrapRetVal(GetMobCount, push(val); return 1;)
-	samewrapRetVal(GetMobClosest, POINT2table(val); return 1;)
-	samewrapRetVal(GetChar, map2table<double>(val, push);  return 1;)
-	samewrapRetVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
-	samewrapRetVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
-	samewrapRetVal(GetMap, RECT2table(val); return 1;)
+	samewrapRetVal(GetMapID)
+	samewrapRetVal(GetMobCount)
+	samewrapVal(GetMobClosest, POINT2table(val); return 1;)
+	samewrapVal(GetChar, map2table<double>(val, push);  return 1;)
+	samewrapVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
+	samewrapVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
+	samewrapVal(GetMap, RECT2table(val); return 1;)
 
-	samewrapRetVal(SendPacket, push(val); return 1;, lua_tostring(L, 1))
+	samewrapRetVal(SendPacket, lua_tostring(L, 1))
 
 	samewrap(SetMoveDelay, integer(1))
 	samewrap(SetMoveXOff, integer(1))
@@ -130,12 +131,12 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(SetMove, integer(1), integer(2))
 
-	samewrap(MoveX, integer(1))
-	samewrap(MoveXOff, integer(1), integer(2))
-	samewrap(MoveXOffNoStop, integer(1), integer(2))
+	samewrapRetVal(MoveX, integer(1))
+	samewrapRetVal(MoveXOff, integer(1), integer(2))
+	samewrapRetVal(MoveXOffNoStop, integer(1), integer(2))
 
 	samewrap(Rope, integer(1))
-	samewrap(RopeY, integer(1))
+	samewrapRetVal(RopeY, integer(1))
 
 	samewrap(FaceLeft)
 	samewrap(FaceRight)
@@ -143,11 +144,13 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(MoveTowardsX, integer(1))
 	samewrap(MoveTowardsY, integer(1))
 
+	samewrap(SetTimeout, integer(1))
+
 #undef space
 #define space 
 	samewrap(Sleep, integer(1))
 	wrap(Sleep, "Wait", integer(1))
-
+	
 	samewrap(KeyPressNoHook, integer(1))
 	samewrap(MessageInt, integer(1))
 	samewrap(MessageNum, number(1))

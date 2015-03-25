@@ -8,7 +8,7 @@ function GetMobX()
 		mobs = maple.GetMobs()
 		for k, mob in pairs(mobs) do
 			diffY = math.abs(mob.y - charY)
-			if diffY < 30   then
+			if diffY < 30 then
 				diffX = math.abs(mob.x - charX)
 				if diffX < dist then
 					dist = diffX

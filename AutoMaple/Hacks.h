@@ -11,7 +11,8 @@ public:
 
 	//in the lua api:
 	//prepend all methods with "maple."
-	//all times are in milliseconds (1000 = 1 second)
+	//times are in milliseconds (1000 = 1 second),
+	//unless otherwise noted
 
 	//maple.Message creates a messagebox with a string
 	//maple.MessageInt is like Message for ints instead of strings
@@ -68,6 +69,8 @@ public:
 		characters with different movement speeds will probably have to adjust the x offset they use */
 	static void SetRopePollDelay(int32_t delay); //sets the delay before the loop checks if the y value has changed
 	
+	static void SetTimeout(int32_t t); //sets the timeout for MoveX* and RopeY in seconds
+
 	static void HookMove();
 	static void UnHookMove();
 		//the following methods require move to be hooked:
@@ -77,12 +80,12 @@ public:
 			second arg: -1 for up, 1 for down;
 			0 for nothing;
 			example: (1, 0) moves right */
-		static void MoveX(int32_t targetX); //moves to an x value using the set x offset
-		static void MoveXOff(int32_t targetX, int32_t off); //first arg: target x, second arg: x offset, not affected by SetMoveXOff
-		static void MoveXOffNoStop(int32_t targetX, int32_t off); //moves without stopping afterwards
+		static bool MoveX(int32_t targetX); //moves to an x value using the set x offset
+		static bool MoveXOff(int32_t targetX, int32_t off); //first arg: target x, second arg: x offset, not affected by SetMoveXOff
+		static bool MoveXOffNoStop(int32_t targetX, int32_t off); //moves without stopping afterwards
 		
 		static void Rope(int32_t dirY); //-1 for up, 1 for down
-		static void RopeY(int32_t targetY); //moves on a rope to a certain y value, not affected by SetRopePollDelay
+		static bool RopeY(int32_t targetY); //moves on a rope to a certain y value, not affected by SetRopePollDelay
 		
 		static void FaceLeft(); //moves left to face left
 		static void FaceRight(); //moves right to face right

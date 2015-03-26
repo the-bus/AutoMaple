@@ -44,6 +44,7 @@ namespace AutoMaple {
 	private: System::Windows::Forms::TextBox^  textBox1;
 	private: System::Windows::Forms::Label^  label1;
 	private: System::Windows::Forms::Button^  button3;
+	private: System::Windows::Forms::CheckBox^  checkBox1;
 
 	protected:
 
@@ -66,6 +67,7 @@ namespace AutoMaple {
 		{
 			this->components = (gcnew System::ComponentModel::Container());
 			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->checkBox1 = (gcnew System::Windows::Forms::CheckBox());
 			this->button3 = (gcnew System::Windows::Forms::Button());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
@@ -81,6 +83,7 @@ namespace AutoMaple {
 			// 
 			this->tableLayoutPanel1->ColumnCount = 1;
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle()));
+			this->tableLayoutPanel1->Controls->Add(this->checkBox1, 0, 4);
 			this->tableLayoutPanel1->Controls->Add(this->button3, 0, 1);
 			this->tableLayoutPanel1->Controls->Add(this->button1, 0, 3);
 			this->tableLayoutPanel1->Controls->Add(this->button2, 0, 2);
@@ -88,13 +91,25 @@ namespace AutoMaple {
 			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
 			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
-			this->tableLayoutPanel1->RowCount = 4;
+			this->tableLayoutPanel1->RowCount = 5;
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 20)));
 			this->tableLayoutPanel1->Size = System::Drawing::Size(288, 249);
 			this->tableLayoutPanel1->TabIndex = 2;
+			// 
+			// checkBox1
+			// 
+			this->checkBox1->AutoSize = true;
+			this->checkBox1->Location = System::Drawing::Point(3, 231);
+			this->checkBox1->Name = L"checkBox1";
+			this->checkBox1->Size = System::Drawing::Size(139, 15);
+			this->checkBox1->TabIndex = 3;
+			this->checkBox1->Text = L"Dock left of MS window";
+			this->checkBox1->UseVisualStyleBackColor = true;
+			this->checkBox1->CheckedChanged += gcnew System::EventHandler(this, &Home::checkBox1_CheckedChanged);
 			// 
 			// button3
 			// 
@@ -103,9 +118,9 @@ namespace AutoMaple {
 			this->button3->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->button3->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button3->Location = System::Drawing::Point(3, 65);
+			this->button3->Location = System::Drawing::Point(3, 60);
 			this->button3->Name = L"button3";
-			this->button3->Size = System::Drawing::Size(282, 56);
+			this->button3->Size = System::Drawing::Size(282, 51);
 			this->button3->TabIndex = 5;
 			this->button3->Text = L"Open file in default program";
 			this->button3->UseVisualStyleBackColor = true;
@@ -118,9 +133,9 @@ namespace AutoMaple {
 			this->button1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button1->Location = System::Drawing::Point(3, 189);
+			this->button1->Location = System::Drawing::Point(3, 174);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(282, 57);
+			this->button1->Size = System::Drawing::Size(282, 51);
 			this->button1->TabIndex = 3;
 			this->button1->Text = L"Run file from the MapleStory folder";
 			this->button1->UseVisualStyleBackColor = true;
@@ -133,9 +148,9 @@ namespace AutoMaple {
 			this->button2->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->button2->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button2->Location = System::Drawing::Point(3, 127);
+			this->button2->Location = System::Drawing::Point(3, 117);
 			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(282, 56);
+			this->button2->Size = System::Drawing::Size(282, 51);
 			this->button2->TabIndex = 2;
 			this->button2->Text = L"Stop script";
 			this->button2->UseVisualStyleBackColor = true;
@@ -153,7 +168,7 @@ namespace AutoMaple {
 			this->tableLayoutPanel2->RowCount = 2;
 			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
 			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
-			this->tableLayoutPanel2->Size = System::Drawing::Size(282, 56);
+			this->tableLayoutPanel2->Size = System::Drawing::Size(282, 51);
 			this->tableLayoutPanel2->TabIndex = 4;
 			// 
 			// textBox1
@@ -161,7 +176,7 @@ namespace AutoMaple {
 			this->textBox1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->textBox1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox1->Location = System::Drawing::Point(3, 31);
+			this->textBox1->Location = System::Drawing::Point(3, 28);
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(276, 23);
 			this->textBox1->TabIndex = 5;
@@ -209,5 +224,6 @@ namespace AutoMaple {
 		private: System::Void Home_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e);
 		private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e);
 		private: System::Void button3_Click(System::Object^  sender, System::EventArgs^  e);
+		private: System::Void checkBox1_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 };
 }

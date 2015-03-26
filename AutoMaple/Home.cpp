@@ -3,7 +3,6 @@
 #include <msclr/marshal.h>
 using namespace msclr::interop;
 using namespace AutoMaple;
-HWND hwnd;
 void GUIWork()
 {
 	Application::EnableVisualStyles();
@@ -52,18 +51,37 @@ System::Void Home::Home_FormClosed(System::Object^  sender, System::Windows::For
 		FreeLibraryAndExitThread(mod, 0);
 	#endif
 }
+System::Void Home::checkBox1_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+	if (checkBox1->Checked) {
+		ShowInTaskbar = false;
+		timer1->Start();
+	}
+	else {
+		ShowInTaskbar = true;
+		timer1->Stop();
+	}
+}
 System::Void Home::Home_Load(System::Object^  sender, System::EventArgs^  e) {
-	MShwnd();
 	Hacks::HookFrame();
-	//timer1->Start();
 }
 System::Void Home::timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
 	RECT rect;
-	GetWindowRect(hwnd, &rect);
-	Point * p = new Point();
-	p->X = rect.left - this->Size.Width;
-	p->Y = rect.top;
-	this->Location = *p;
+	HWND foreground = GetForegroundWindow();
+	HWND ms = GetMShwnd();
+	HWND my = (HWND)Handle.ToPointer();
+	if (foreground == ms || foreground == my) {
+		ShowWindow(my, SW_SHOWNOACTIVATE);
+		SetWindowPos(my, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		GetWindowRect(ms, &rect);
+		Point * p = new Point();
+		p->X = rect.left - this->Size.Width;
+		p->Y = rect.top;
+		this->Location = *p;
+	}
+	else {
+		SetWindowPos(my, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		ShowWindow(my, SW_HIDE);
+	}
 }
 System::Void Home::button3_Click(System::Object^  sender, System::EventArgs^  e) {
 	char buf[LEN];

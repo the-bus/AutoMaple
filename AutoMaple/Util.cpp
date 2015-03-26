@@ -38,3 +38,9 @@ void GetFilePathExe(char * buf, const char * file, uint64_t sz) {
 	strcat_s(buf, sz, "\\");
 	strcat_s(buf, sz, file);
 }
+HWND hwnd;
+HWND GetMShwnd() {
+	if (!IsWindow(hwnd))
+		hwnd = FindProcessWindow("MapleStoryClass", GetCurrentProcessId());
+	return hwnd;
+}

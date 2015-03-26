@@ -94,7 +94,6 @@ using namespace std;
 extern lua_State* L;
 extern HMODULE mod;
 extern HANDLE hThread;
-extern HWND hwnd;
 
 //macros
 
@@ -104,11 +103,9 @@ extern HWND hwnd;
 #define CloseThread(Handle) TerminateThread(Handle, 0);
 #define STRINGIFY(x) #x
 #define Message(ach) MessageBox(NULL, ach, "", MB_OK|MB_ICONEXCLAMATION)
-#define MShwnd() hwnd = FindProcessWindow("MapleStoryClass", GetCurrentProcessId());
-
-//functions
 
 //utils
+HWND GetMShwnd();
 int32_t MsgBox(PSTR sz, ...);
 uint32_t VKtoMS(uint32_t key);
 HWND WINAPI FindProcessWindow(__in_z LPCSTR lpcszWindowClass, __in DWORD dwProcessId);

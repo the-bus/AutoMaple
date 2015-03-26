@@ -5,8 +5,9 @@ lua_State* L = NULL;
 
 void KeyPressNoHook(int32_t key)
 {
-	PostMessage(hwnd, WM_KEYDOWN, key, VKtoMS(key));
-	PostMessage(hwnd, WM_KEYUP, key, VKtoMS(key));
+	HWND ms = GetMShwnd();
+	PostMessage(ms, WM_KEYDOWN, key, VKtoMS(key));
+	PostMessage(ms, WM_KEYUP, key, VKtoMS(key));
 }
 
 void MessageInt(int32_t a) {

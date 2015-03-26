@@ -3,12 +3,12 @@
 
 int32_t sX, sY;
 int32_t mX, mY;
+int32_t tX, tY;
 
 atomic<uint8_t> frameActive = 0;
 
 uint32_t fRet;
 uint32_t fOesi; //frame cave's original esi
-uint32_t tOesi; //teleport cave's original esi
 uint32_t sOeax; //used by SP to store eax
 uint32_t mOeax;
 
@@ -35,6 +35,11 @@ uint8_t Moved;
 
 time_t timeout;
 
+int32_t HPKey;
+int32_t HPMin;
+int32_t MPKey;
+int32_t MPMin;
+
 Concurrency::concurrent_queue<void(*)()> functions;
 
 #define timeoutWhile(cond) \
@@ -43,8 +48,9 @@ do { \
 		while (cond && (timeout <= 0 || time(NULL) - stime < timeout)); \
 		ret = !(cond); \
 } while (0);
-#define DoFuncFrameWrap(func) \
-void Hacks::func() { \
+#define DoFuncFrameWrap(func, code, ...) \
+void Hacks::func(__VA_ARGS__) { \
+	code \
 	DoFuncFrame(Do ## func); \
 }
 void WaitForFrame() {
@@ -73,6 +79,14 @@ void Hacks::KeyPress(int32_t k)
 		Sleep(0);
 	return;
 }
+void Hacks::AutoHP(int32_t k, int32_t minhp) {
+	HPKey = k;
+	HPMin = minhp;
+}
+void Hacks::AutoMP(int32_t k, int32_t minmp) {
+	MPKey = k;
+	MPMin = minmp;
+}
 void Hacks::KeyDown(int32_t k)
 {
 	holdKeys[k] = 1;
@@ -88,22 +102,27 @@ void DoEnableAutoPortal() {
 	byte enable = 0x75;
 	Memory::Write((void*)AutoPortal, &enable, 1);
 }
-DoFuncFrameWrap(EnableAutoPortal)
+DoFuncFrameWrap(EnableAutoPortal, ;)
 void DoDisableAutoPortal() {
 	byte disable = 0x74;
 	Memory::Write((void*)AutoPortal, &disable, 1);
 }
-DoFuncFrameWrap(DisableAutoPortal)
+DoFuncFrameWrap(DisableAutoPortal, ;)
 /*translates to:
 void Hacks::DisableAutoPortal() {
 	DoFuncFrame(DoDisableAutoPortal);
 }*/
 typedef void(__fastcall *pfnCVecCtrlUser__OnTeleport)(void *pthis, void *edx, void *, long x, long y);
-static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01600FE0; /* v160.3 */
-void Hacks::Teleport(int32_t x, int32_t y) {
+//8B ? 24 ? 8B ? ? 8B ? ? ? 8D ? ? 8B ? ? ? ? ? ? FF ? 85 C0 ? ? ? ? ? ? ? ? ? E8
+static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01600FE0;
+void DoTeleport() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
-	CVecCtrlUser__OnTeleport((uint8_t *)Vec + 4, NULL, NULL, x, y);
+	CVecCtrlUser__OnTeleport((uint8_t *)Vec + 4, NULL, NULL, tX, tY);
 }
+DoFuncFrameWrap(Teleport, 
+	tX = x; 
+	tY = y;,
+	int32_t x, int32_t y)
 __declspec(naked) void __stdcall SPCave() {
 	__asm {
 		mov sOeax, eax
@@ -122,12 +141,12 @@ void DoHookSP() {
 	uint32_t addr = (uint32_t)SPCave;
 	Memory::Write(SP, &addr, 4);
 }
-DoFuncFrameWrap(HookSP)
+DoFuncFrameWrap(HookSP, ;)
 void DoUnHookSP() {
 	uint32_t orig = SPOrig;
 	Memory::Write(SP, &orig, 4);
 }
-DoFuncFrameWrap(UnHookSP)
+DoFuncFrameWrap(UnHookSP, ;)
 void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;
 	sY = y;
@@ -319,14 +338,14 @@ void DoHookMove() {
 	Memory::Write((void*)(MoveJmp + 1), &distance, 4);
 	Memory::Write((void*)(MoveJmp + 5), &nops, 3);
 }
-DoFuncFrameWrap(HookMove)
+DoFuncFrameWrap(HookMove, ;)
 void DoUnHookMove() {
 	byte orig2[] = { 0x89, 0x7C, 0x24, 0x20, 0x89, 0x7C, 0x24, 0x1C };
 	Memory::Write((void*)MoveJmp, &orig2, 8);
 	byte orig[] = { 0xFF, 0x15, 0xC0, 0xB8, 0xE3, 0x01 };
 	Memory::Write(MoveDisable, &orig, 6);
 }
-DoFuncFrameWrap(UnHookMove)
+DoFuncFrameWrap(UnHookMove, ;)
 void Hacks::ResetKeys() {
 	for (uint32_t i = 0; i < kLen; i++) {
 		if (holdKeys[i] == 1)
@@ -449,6 +468,10 @@ void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 	}
 }
 void __stdcall SendKeys() {
+	if (HPMin > 0 && Char["hp"] <= HPMin)
+		pressKeys[HPKey] = 1;
+	if (MPMin > 0 && Char["hp"] <= MPMin)
+		pressKeys[MPKey] = 1;
 	for (uint32_t i = 0; i < kLen; i++) {
 		if (holdKeys[i] == 1) {
 			SendKey(i, MS_DOWN);
@@ -470,12 +493,12 @@ void __stdcall SendKeys() {
 __declspec(naked) void __stdcall FrameCave() {
 	__asm pushad
 	frameActive = 1;
+	FetchAll();
 	void (*f)();
 	while (functions.try_pop(f)) {
 		f();
 	}
 	SendKeys();
-	FetchAll();
 	frameActive = 0;
 	__asm {
 		popad
@@ -511,8 +534,10 @@ void Hacks::Reset() {
 	DisableAutoPortal();
 	UnHookMove();
 	UnHookSP();
+	HPMin = 0;
+	MPMin = 0;
 	ResetKeys();
-	sX = sY = mX = mY = 0;
+	tX = tY = sX = sY = mX = mY = 0;
 	RefreshRopes = 0;
 	RefreshMobs = 0;
 	Moved = 0;

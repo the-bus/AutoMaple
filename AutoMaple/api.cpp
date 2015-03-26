@@ -120,6 +120,9 @@ static const luaL_Reg mapleLib[] = {
 	samewrapVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
 	samewrapVal(GetMap, RECT2table(val); return 1;)
 
+	samewrap(AutoHP, integer(1), integer(2)) //key, minimum value
+	samewrap(AutoMP, integer(1), integer(2)) //key, minimum value
+
 	samewrapRetVal(SendPacket, lua_tostring(L, 1))
 
 	samewrap(SetMoveDelay, integer(1))

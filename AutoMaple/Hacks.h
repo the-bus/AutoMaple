@@ -56,6 +56,9 @@ public:
 	static pair<RECT *, uint64_t> GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle
 	
+	static void AutoHP(int32_t k, int32_t minhp);
+	static void AutoMP(int32_t k, int32_t minmp);
+
 	static bool SendPacket(const char * p); //send a packet
 
 	//movement stuff:

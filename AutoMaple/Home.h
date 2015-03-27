@@ -45,6 +45,7 @@ namespace AutoMaple {
 	private: System::Windows::Forms::Label^  label1;
 	private: System::Windows::Forms::Button^  button3;
 	private: System::Windows::Forms::CheckBox^  checkBox1;
+	private: System::Windows::Forms::ListBox^  listBox1;
 
 	protected:
 
@@ -67,6 +68,7 @@ namespace AutoMaple {
 		{
 			this->components = (gcnew System::ComponentModel::Container());
 			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
+			this->listBox1 = (gcnew System::Windows::Forms::ListBox());
 			this->checkBox1 = (gcnew System::Windows::Forms::CheckBox());
 			this->button3 = (gcnew System::Windows::Forms::Button());
 			this->button1 = (gcnew System::Windows::Forms::Button());
@@ -83,6 +85,7 @@ namespace AutoMaple {
 			// 
 			this->tableLayoutPanel1->ColumnCount = 1;
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle()));
+			this->tableLayoutPanel1->Controls->Add(this->listBox1, 0, 5);
 			this->tableLayoutPanel1->Controls->Add(this->checkBox1, 0, 4);
 			this->tableLayoutPanel1->Controls->Add(this->button3, 0, 1);
 			this->tableLayoutPanel1->Controls->Add(this->button1, 0, 3);
@@ -91,23 +94,33 @@ namespace AutoMaple {
 			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
 			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
-			this->tableLayoutPanel1->RowCount = 5;
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 25)));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 20)));
-			this->tableLayoutPanel1->Size = System::Drawing::Size(288, 249);
+			this->tableLayoutPanel1->RowCount = 6;
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 25)));
+			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel1->Size = System::Drawing::Size(359, 336);
 			this->tableLayoutPanel1->TabIndex = 2;
+			// 
+			// listBox1
+			// 
+			this->listBox1->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->listBox1->FormattingEnabled = true;
+			this->listBox1->Location = System::Drawing::Point(3, 193);
+			this->listBox1->Name = L"listBox1";
+			this->listBox1->Size = System::Drawing::Size(353, 140);
+			this->listBox1->TabIndex = 3;
 			// 
 			// checkBox1
 			// 
 			this->checkBox1->AutoSize = true;
-			this->checkBox1->Location = System::Drawing::Point(3, 231);
+			this->checkBox1->Location = System::Drawing::Point(3, 168);
 			this->checkBox1->Name = L"checkBox1";
-			this->checkBox1->Size = System::Drawing::Size(139, 15);
+			this->checkBox1->Size = System::Drawing::Size(196, 17);
 			this->checkBox1->TabIndex = 3;
-			this->checkBox1->Text = L"Dock left of MS window";
+			this->checkBox1->Text = L"Dock left of MS window (may crash)";
 			this->checkBox1->UseVisualStyleBackColor = true;
 			this->checkBox1->CheckedChanged += gcnew System::EventHandler(this, &Home::checkBox1_CheckedChanged);
 			// 
@@ -116,11 +129,11 @@ namespace AutoMaple {
 			this->button3->AutoSize = true;
 			this->button3->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->button3->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->button3->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->button3->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
 			this->button3->Location = System::Drawing::Point(3, 60);
 			this->button3->Name = L"button3";
-			this->button3->Size = System::Drawing::Size(282, 51);
+			this->button3->Size = System::Drawing::Size(353, 30);
 			this->button3->TabIndex = 5;
 			this->button3->Text = L"Open file in default program";
 			this->button3->UseVisualStyleBackColor = true;
@@ -131,11 +144,11 @@ namespace AutoMaple {
 			this->button1->AutoSize = true;
 			this->button1->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->button1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button1->Location = System::Drawing::Point(3, 174);
+			this->button1->Location = System::Drawing::Point(3, 132);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(282, 51);
+			this->button1->Size = System::Drawing::Size(353, 30);
 			this->button1->TabIndex = 3;
 			this->button1->Text = L"Run file from the MapleStory folder";
 			this->button1->UseVisualStyleBackColor = true;
@@ -146,11 +159,11 @@ namespace AutoMaple {
 			this->button2->AutoSize = true;
 			this->button2->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->button2->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->button2->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->button2->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button2->Location = System::Drawing::Point(3, 117);
+			this->button2->Location = System::Drawing::Point(3, 96);
 			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(282, 51);
+			this->button2->Size = System::Drawing::Size(353, 30);
 			this->button2->TabIndex = 2;
 			this->button2->Text = L"Stop script";
 			this->button2->UseVisualStyleBackColor = true;
@@ -166,30 +179,30 @@ namespace AutoMaple {
 			this->tableLayoutPanel2->Location = System::Drawing::Point(3, 3);
 			this->tableLayoutPanel2->Name = L"tableLayoutPanel2";
 			this->tableLayoutPanel2->RowCount = 2;
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
-			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Percent, 50)));
-			this->tableLayoutPanel2->Size = System::Drawing::Size(282, 51);
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel2->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
+			this->tableLayoutPanel2->Size = System::Drawing::Size(353, 51);
 			this->tableLayoutPanel2->TabIndex = 4;
 			// 
 			// textBox1
 			// 
 			this->textBox1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->textBox1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->textBox1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox1->Location = System::Drawing::Point(3, 28);
+			this->textBox1->Location = System::Drawing::Point(3, 23);
 			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(276, 23);
+			this->textBox1->Size = System::Drawing::Size(347, 26);
 			this->textBox1->TabIndex = 5;
 			this->textBox1->Text = L"test.lua";
 			// 
 			// label1
 			// 
 			this->label1->AutoSize = true;
-			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
 			this->label1->Location = System::Drawing::Point(3, 0);
 			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(245, 17);
+			this->label1->Size = System::Drawing::Size(271, 20);
 			this->label1->TabIndex = 0;
 			this->label1->Text = L"File to load from maplestory directory:";
 			// 
@@ -202,8 +215,9 @@ namespace AutoMaple {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(288, 249);
+			this->ClientSize = System::Drawing::Size(359, 336);
 			this->Controls->Add(this->tableLayoutPanel1);
+			this->MinimumSize = System::Drawing::Size(375, 375);
 			this->Name = L"Home";
 			this->Text = L"Home";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &Home::Home_FormClosing);
@@ -225,5 +239,6 @@ namespace AutoMaple {
 		private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e);
 		private: System::Void button3_Click(System::Object^  sender, System::EventArgs^  e);
 		private: System::Void checkBox1_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+		public: System::Void Home::Log(const char * c);
 };
 }

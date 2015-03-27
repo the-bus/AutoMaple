@@ -104,6 +104,9 @@ extern HANDLE hThread;
 #define STRINGIFY(x) #x
 #define Message(ach) MessageBox(NULL, ach, "", MB_OK|MB_ICONEXCLAMATION)
 
+//gui
+void Log(const char * c);
+
 //utils
 HWND GetMShwnd();
 int32_t MsgBox(PSTR sz, ...);

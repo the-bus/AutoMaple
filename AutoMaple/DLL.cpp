@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include "inc.h"
 
 //some stuff is taken from Derp trainer

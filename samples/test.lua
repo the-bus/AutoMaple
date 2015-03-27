@@ -16,7 +16,7 @@ function JumpWait()
 end
 function JumpWaitRope()
 	maple.KeyDown(0x12)
-	maple.Wait(40)
+	maple.Wait(70)
 end
 function Restart()
 	maple.SetMove(0, 0)

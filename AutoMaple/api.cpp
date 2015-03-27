@@ -62,20 +62,37 @@ void RECT2table(RECT r) {
 	arr2table<POINT>(val, POINT2table, 2);
 }
 
+void log(const char * func, int len) {
+	lua_Debug ar;
+	lua_getstack(L, 1, &ar);
+	lua_getinfo(L, "l", &ar);
+	uint32_t line = ar.currentline;
+#define mymsg ": "
+	uint32_t sz = len + sizeof(mymsg) + 10 + 1;
+	char * c = new char[sz];
+	char * n = new char[10 + 1];
+	_itoa_s(line, n, 10 + 1, 10);
+	c[0] = '\0';
+	strcat_s(c, sz, n);
+	strcat_s(c, sz, mymsg);
+	strcat_s(c, sz, func);
+	Log(c);
+	delete c;
+	delete n;
+}
+
 //sketchy lua macros
 
 #define getval() auto val = 
 
 #define pushval() push(val); return 1;
 
-#define rawlambdawrap(func, in, ret, ...) \
-[](lua_State *L) { \
+#define rawelementwrap(func, name, in, ret, ...) { name, [](lua_State *L) { \
+	log(name, sizeof(name)); \
 	in space::func(__VA_ARGS__); \
 	ret; \
 	return 0; \
-}
-
-#define rawelementwrap(func, name, in, ret, ...) { name, rawlambdawrap(func, in, ret, __VA_ARGS__) },
+} },
 
 #define wrap(func, name, ...) rawelementwrap(func, name, ;, ;, __VA_ARGS__)
 #define wrapRet(func, name, ret, ...) rawelementwrap(func, name, getval(), ret, __VA_ARGS__)

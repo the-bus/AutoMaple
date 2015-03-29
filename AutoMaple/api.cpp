@@ -48,11 +48,11 @@ void arr2table(T * a, void (f)(T), size_t len) {
 }
 
 template<typename T>
-void map2table(map<const char *, T> m, void (f)(T n)) {
+void map2table(map<const char *, T> m) {
 	lua_createtable(L, 0, m.size());
 	for (auto p : m)
 	{
-		f(p.second);
+		push(p.second);
 		lua_setfield(L, -2, p.first);
 	}
 }
@@ -70,15 +70,14 @@ void log(const char * func, int len) {
 #define mymsg ": "
 	uint32_t sz = len + sizeof(mymsg) + 10 + 1;
 	char * c = new char[sz];
-	char * n = new char[10 + 1];
-	_itoa_s(line, n, 10 + 1, 10);
+	char n[11];
+	_itoa_s(line, n, 10);
 	c[0] = '\0';
 	strcat_s(c, sz, n);
 	strcat_s(c, sz, mymsg);
 	strcat_s(c, sz, func);
 	Log(c);
 	delete c;
-	delete n;
 }
 
 //sketchy lua macros
@@ -123,6 +122,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(DisableAutoPortal)
 
 	samewrap(Teleport, integer(1), integer(2))
+	samewrap(KamiTeleport, integer(1), integer(2))
 
 	samewrap(HookSP)
 	samewrap(UnHookSP)
@@ -133,9 +133,10 @@ static const luaL_Reg mapleLib[] = {
 	samewrapRetVal(GetMapID)
 	samewrapRetVal(GetMobCount)
 	samewrapVal(GetMobClosest, POINT2table(val); return 1;)
-	samewrapVal(GetChar, map2table<double>(val, push);  return 1;)
-	samewrapVal(GetMobs, arr2table<POINT>(val.first, POINT2table, val.second); return 1;)
-	samewrapVal(GetRopes, arr2table<RECT>(val.first, RECT2table, val.second); return 1;)
+	samewrapVal(GetChar, map2table(val);  return 1;)
+	samewrapVal(GetMobs, arr2table(val.first, POINT2table, val.second); return 1;)
+	samewrapVal(GetRopes, arr2table(val.first, RECT2table, val.second); return 1;)
+	samewrapVal(GetPortals, arr2table(val.first, map2table, val.second); return 1;)
 	samewrapVal(GetMap, RECT2table(val); return 1;)
 
 	samewrap(AutoHP, integer(1), integer(2)) //key, minimum value
@@ -176,6 +177,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(MessageInt, integer(1))
 	samewrap(MessageNum, number(1))
 	samewrap(Message, lua_tolstring(L, 1, NULL))
+	samewrap(Log, lua_tolstring(L, 1, NULL))
 
 	{ NULL, NULL }
 };

@@ -1,6 +1,9 @@
 #pragma once
 #include "inc.h"
 
+#define strmap(type) map<const char *, type>
+#define arrpair(type) pair<type, uint64_t>
+
 class Hacks {
 
 public:
@@ -33,7 +36,8 @@ public:
 	static void EnableAutoPortal();
 	static void DisableAutoPortal();
 
-	static void Teleport(int32_t x, int32_t y); //not usually stable
+	static void Teleport(int32_t x, int32_t y); //may not be stable
+	static void KamiTeleport(int32_t x, int32_t y); //may not be stable
 
 	//spawn point control:
 	static void HookSP();
@@ -43,17 +47,18 @@ public:
 	static void WaitForBreath(); //waits for the character to regain breath, might want to include a delay after this
 
 	//getters:
+	static arrpair(strmap(int32_t) *) GetPortals();
 	static int32_t GetMapID(); //returns the current map's id
 	static int32_t GetMobCount(); //returns the number of mobs
 	static POINT GetMobClosest(); //returns the closest mob as a point
-	static map<const char *, double> GetChar();
+	static strmap(double) GetChar();
 		/* returns the character as a point (x and y)
 		also has the attackCount
 		and time until breath in milliseconds as breath 
 		mp and hp
 		exp as a decimal percentage value */
-	static pair<POINT *, uint64_t> GetMobs(); //returns a table of mobs as points
-	static pair<RECT *, uint64_t> GetRopes(); //returns a table of ropes as rectangles
+	static arrpair(POINT *) GetMobs(); //returns a table of mobs as points
+	static arrpair(RECT *) GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle
 	
 	static void AutoHP(int32_t k, int32_t minhp);

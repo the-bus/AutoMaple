@@ -3,7 +3,8 @@
 
 int32_t sX, sY;
 int32_t mX, mY;
-int32_t tX, tY;
+int32_t ktX, ktY;
+int32_t ptX, ptY;
 
 atomic<uint8_t> frameActive = 0;
 
@@ -16,17 +17,20 @@ uint32_t mOeax;
 atomic<uint8_t> pressKeys[kLen] = { 0 };
 atomic<uint8_t> holdKeys[kLen] = { 0 };
 
-map<const char *, double> Char;
+strmap(double) Char;
 uint32_t MapID;
 
 int32_t MobCount;
 POINT MobClosest;
-pair<POINT *, uint64_t> Mobs;
+arrpair(POINT *) Mobs;
 atomic<uint8_t> RefreshMobs;
 
-pair<RECT *, uint64_t> Ropes;
+arrpair(RECT *) Ropes;
 RECT Map;
 atomic<uint8_t> RefreshRopes;
+
+arrpair(strmap(int32_t) *) Portals;
+atomic<uint8_t> RefreshPortals;
 
 int32_t Xoff;
 int32_t MoveDelay;
@@ -39,6 +43,10 @@ int32_t HPKey;
 int32_t HPMin;
 int32_t MPKey;
 int32_t MPMin;
+
+int32_t ptP;
+byte * PortalSpace[128] = { 0 };
+//uint32_t ptRet;
 
 Concurrency::concurrent_queue<void(*)()> functions;
 
@@ -53,6 +61,17 @@ void Hacks::func(__VA_ARGS__) { \
 	code \
 	DoFuncFrame(Do ## func); \
 }
+#define GetWrap(type, attr, code) \
+type Hacks::Get ## attr() { \
+	WaitForFrame(); \
+	code \
+	return attr; \
+}
+#define GetWrapLock(type, attr) GetWrap(type, attr,  \
+	Refresh ## attr = 1; \
+	while (Refresh ## attr != 0) \
+		Sleep(0); \
+)
 void WaitForFrame() {
 	while (frameActive != 0)
 		Sleep(0);
@@ -115,15 +134,15 @@ void Hacks::DisableAutoPortal() {
 typedef void(__fastcall *pfnCVecCtrlUser__OnTeleport)(void *pthis, void *edx, void *, long x, long y);
 //8B ? 24 ? 8B ? ? 8B ? ? ? 8D ? ? 8B ? ? ? ? ? ? FF ? 85 C0 ? ? ? ? ? ? ? ? ? E8
 static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01600FE0;
-void DoTeleport() {
+void DoKamiTeleport() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
-	CVecCtrlUser__OnTeleport((uint8_t *)Vec + 4, NULL, NULL, tX, tY);
+	CVecCtrlUser__OnTeleport((uint8_t *)Vec + 4, NULL, NULL, ktX, ktY);
 }
-DoFuncFrameWrap(Teleport, 
-	tX = x; 
-	tY = y;,
+DoFuncFrameWrap(KamiTeleport, 
+	ktX = x; 
+	ktY = y; ,
 	int32_t x, int32_t y)
-__declspec(naked) void __stdcall SPCave() {
+__declspec(naked) void SPCave() {
 	__asm {
 		mov sOeax, eax
 		mov eax, sX
@@ -151,7 +170,7 @@ void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;
 	sY = y;
 }
-void __stdcall FetchChar() {
+void FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
 	Char["x"] = round(
 		Deref<double>(
@@ -171,10 +190,10 @@ void __stdcall FetchChar() {
 	Char["mp"] = DerefOff<uint32_t>(StatsBase, StatsMP, -1);
 	Char["exp"] = DerefOff<double>(StatsBase, StatsEXP, -1);
 }
-void __stdcall FetchMapInfo() {
+void FetchMapInfo() {
 	MapID = DerefOff<uint32_t>(MyMapInfo, MyMapIDOff, 0);
 }
-void __stdcall FetchMob() {
+void FetchMob() {
 	POINT closest = { INT_MAX };
 	long area = 9999999;
 	// mob base
@@ -234,81 +253,163 @@ boolean InBoundsX(int32_t x) {
 boolean InBoundsY(int32_t y) {
 	return (y >= Map.top && y <= Map.bottom);
 }
-void __stdcall FetchMap() {
+void FetchRopes() {
+	auto Rope = DerefOff<uint32_t>(MapBase, RopeOff, 0);
+	auto RopeCount = Deref<uint32_t>(Rope - 4, 0) - 1;
+	delete Ropes.first;
+	Ropes.first = new RECT[RopeCount];
+	//vector<RECT> rects;
+	Rope += 0x2C;
+	uint32_t i = 0;
+	for (; i < RopeCount; i++) {
+		int32_t x = Deref(Rope, INT_MAX);
+		//if (!InBoundsX(x))
+		//	break;
+		int32_t y1 = Deref(Rope + 4, INT_MAX);
+		//if (!InBoundsY(y1))
+		//	break;
+		int32_t y2 = Deref(Rope + 8, INT_MAX);
+		//if (!InBoundsY(y2))
+		//	break;
+		//rects.push_back(RECT{ x, y2, x, y1 });
+		Ropes.first[i] = RECT{ x, y2, x, y1 };
+		Rope += 0x20;
+		Ropes.second = i + 1;
+	}
+	//RECT * arr = new RECT[rects.size()];
+	//copy(rects.begin(), rects.end(), arr);
+	//Ropes.first = arr;
+}
+void FetchPortals(void(*f)(uint32_t, uint32_t)) {
+	auto Portal = DerefOff<uint32_t>(PortalBase, PortalsOff, 0);
+	auto PortalCount = Deref<uint32_t>(Portal + PortalsCountOff, 0);
+	delete Portals.first;
+	Portals.first = new strmap(int32_t)[PortalCount];
+	Portals.second = PortalCount;
+	Portal += PortalsFirst;
+	for (uint32_t i = 0; i < PortalCount; i++) {
+		auto cur = Deref<uint32_t>(Portal, 0);
+		Portals.first[i]["x"] = Deref<int32_t>(cur + PortalXOff, INT_MAX);
+		Portals.first[i]["y"] = Deref<int32_t>(cur + PortalYOff, INT_MAX);
+		Portals.first[i]["tm"] = Deref<int32_t>(cur + PortalTMOff, 0);
+		if (f != NULL)
+			f(cur, i);
+		Portal += PortalNextOff;
+	}
+}
+__declspec(naked) void FakePortal() {
+	__asm {
+		lea edi, [PortalSpace]
+		push 0x014DB229 // 8B ?? ?? 6A ?? 89 ?? ?? ?? 8B ?? ?? 68 ?? ?? ?? ?? 83 ?? ?? 6A ?? 50 51 8B ?? ?? ?? 89
+		ret
+	}
+}
+__declspec(naked) void RawTeleport() {
+	__asm {
+		//sub esp, 0x0C
+		//push ebx
+		//push esi
+		pushad
+		mov ebx, ptX
+		mov[PortalSpace + 0x0C], ebx
+		mov ebx, ptY
+		mov[PortalSpace + 0x10], ebx
+		mov edi, ptP
+		mov eax, [edi + 0x24]
+		mov ebx, [edi + 0x04]
+		push 00
+		push 00
+		push eax
+		push ebx
+		push 00
+		push 00
+		mov ecx, CharBase
+		mov ecx, [ecx]
+		mov eax, 0x014DADB0
+		call eax // CUserLocal__TryRegisterTeleport - addy on call E8 ? ? ? ? 85 ? 0F ? ? ? ? ? 8D ? ? ? 68 ? ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? 8B 00 6A 64
+		jmp Ending
+		Ending:
+		popad
+		ret
+		//push ptRet
+		//ret
+	}
+}
+__declspec(naked) void BlockSend() {
+	__asm ret 0x0004
+}
+void DoTeleport() {
+	ptP = NULL;
+	FetchPortals([](uint32_t p, uint32_t i) {
+		if (ptP == NULL && Portals.first[i]["tm"] != 999999999) {
+			ptP = p;
+		}
+	});
+	if (ptP == NULL)
+		return;
+
+	byte b;
+	int32_t i;
+
+	/*b = 0xE9;
+	ptRet = 0x0163CAE0+5;
+	Memory::Write((void*)0x0163CAE0, &b, 1); // 83 ?? ?? 53 56 57 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 68 ?? ?? ?? ?? B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 33
+	i = jmp(0x0163CAE0, RawTeleport);
+	Memory::Write((byte*)0x0163CAE0 + 1, &i, 4);*/
+
+	b = 0xE9;
+	Memory::Write((void*)0x014DB213, &b, 1); // 83 ?? ?? 53 56 57 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 68 ?? ?? ?? ?? B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 33
+	i = jmp(0x014DB213, FakePortal);
+	Memory::Write((byte*)0x014DB213 + 1, &i, 4);
+	b = 0x90;
+	Memory::Write((byte*)0x014DB213 + 5, &b, 1);
+
+	b = 0xE8;
+	Memory::Write((byte*)0x014DB353, &b, 1); // E8 ?? ?? ?? ?? 8D ?? ?? ?? ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 83 ?? ?? ?? ?? ?? ?? ?? 0F
+	i = jmp(0x014DB353, BlockSend);
+	Memory::Write((byte*)0x014DB353 + 1, &i, 4);
+
+	byte nops[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+	Memory::Write((void*)0x014DB05C, &nops, sizeof(nops)); //// 0F ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? 8D ?? ?? ?? ?? ?? ?? 52 89 ?? ?? ?? E8 ?? ?? ?? ?? 8B ?? ?? 8D
+
+	b = 0x74;
+	Memory::Write((void*)0x014DADF5, &b, 1);// 75 ?? 8B ?? ?? 8B ?? ?? 83 ?? ?? FF ?? 8B ?? 8B ?? 8B ?? ?? FF ?? 85 ?? 75 ?? 3B
+	
+	RawTeleport();
+}
+DoFuncFrameWrap(Teleport,
+	ptX = x;
+	ptY = y;,
+	int32_t x, int32_t y)
+void FetchMap() {
 	auto MapLeft = DerefOff<int32_t>(MapBase, MapLeftOff, 0);
 	auto MapRight = DerefOff<int32_t>(MapBase, MapRightOff, 0);
 	auto MapTop = DerefOff<int32_t>(MapBase, MapTopOff, 0);
 	auto MapBottom = DerefOff<int32_t>(MapBase, MapBottomOff, 0);
 	Map = RECT{ MapLeft, MapTop, MapRight, MapBottom };
 	if (RefreshRopes != 0) {
-		auto Rope = DerefOff<uint32_t>(MapBase, RopeOff, 0);
-		auto RopeCount = Deref<uint32_t>(Rope - 4, 0) - 1;
-		delete Ropes.first;
-		Ropes.first = new RECT[RopeCount];
-		//vector<RECT> rects;
-		Rope += 0x2C;
-		uint32_t i = 0;
-		for (; i < RopeCount; i++) {
-			int32_t x = Deref(Rope, INT_MAX);
-			//if (!InBoundsX(x))
-			//	break;
-			int32_t y1 = Deref(Rope + 4, INT_MAX);
-			//if (!InBoundsY(y1))
-			//	break;
-			int32_t y2 = Deref(Rope + 8, INT_MAX);
-			//if (!InBoundsY(y2))
-			//	break;
-			//rects.push_back(RECT{ x, y2, x, y1 });
-			Ropes.first[i] = RECT{ x, y2, x, y1 };
-			Rope += 0x20;
-			Ropes.second = i + 1;
-		}
-		//RECT * arr = new RECT[rects.size()];
-		//copy(rects.begin(), rects.end(), arr);
-		//Ropes.first = arr;
+		FetchRopes();
 		RefreshRopes = 0;
 	}
+	if (RefreshPortals != 0) {
+		FetchPortals(NULL);
+		RefreshPortals = 0;
+	}
 }
-void __stdcall FetchAll() {
+void FetchAll() {
 	FetchChar();
 	FetchMapInfo();
 	FetchMob();
 	FetchMap();
 }
-pair<POINT *, uint64_t> Hacks::GetMobs() {
-	WaitForFrame(); //wait if a fetch is currently active
-	RefreshMobs = 1; //tell the next fetch to refresh the mobs array
-	while (RefreshMobs != 0)
-		Sleep(0);
-	return Mobs;
-}
-pair<RECT *, uint64_t> Hacks::GetRopes() {
-	WaitForFrame(); //wait if a fetch is currently active
-	RefreshRopes = 1; //tell the next fetch to refresh the mobs array
-	while (RefreshRopes != 0)
-		Sleep(0);
-	return Ropes;
-}
-map<const char *, double> Hacks::GetChar() {
-	WaitForFrame();
-	return Char;
-}
-RECT Hacks::GetMap() {
-	WaitForFrame();
-	return Map;
-}
-int32_t Hacks::GetMapID() {
-	WaitForFrame();
-	return MapID;
-}
-int32_t Hacks::GetMobCount() {
-	WaitForFrame();
-	return MobCount;
-}
-POINT Hacks::GetMobClosest() {
-	WaitForFrame();
-	return MobClosest;
-}
+GetWrapLock(arrpair(strmap(int32_t) *), Portals)
+GetWrapLock(arrpair(POINT *), Mobs)
+GetWrapLock(arrpair(RECT *), Ropes)
+GetWrap(strmap(double), Char)
+GetWrap(RECT, Map)
+GetWrap(int32_t, MapID)
+GetWrap(int32_t, MobCount)
+GetWrap(POINT, MobClosest)
 void Hacks::WaitForBreath() {
 	do {
 		WaitForFrame();
@@ -316,7 +417,7 @@ void Hacks::WaitForBreath() {
 	} while (Char["breath"] != 0);
 	return;
 }
-__declspec(naked) void __stdcall MoveCave() {
+__declspec(naked) void MoveCave() {
 	Moved = 1;
 	__asm {
 		mov mOeax, eax
@@ -451,7 +552,7 @@ void Hacks::KeyHoldFor(int32_t k, int32_t delay) {
 	Sleep(delay);
 	KeyUp(k);
 }
-void __stdcall SendKey(uint32_t VK, uint32_t mask) {
+void SendKey(uint32_t VK, uint32_t mask) {
 	uint32_t Key = VKtoMS(VK) | mask;
 	__asm {
 		pushad
@@ -467,7 +568,7 @@ void __stdcall SendKey(uint32_t VK, uint32_t mask) {
 		popad
 	}
 }
-void __stdcall SendKeys() {
+void SendKeys() {
 	if (HPMin > 0 && Char["hp"] <= HPMin)
 		pressKeys[HPKey] = 1;
 	if (MPMin > 0 && Char["hp"] <= MPMin)
@@ -490,7 +591,7 @@ void __stdcall SendKeys() {
 		}
 	}
 }
-__declspec(naked) void __stdcall FrameCave() {
+__declspec(naked) void FrameCave() {
 	__asm pushad
 	frameActive = 1;
 	FetchAll();
@@ -537,7 +638,7 @@ void Hacks::Reset() {
 	HPMin = 0;
 	MPMin = 0;
 	ResetKeys();
-	tX = tY = sX = sY = mX = mY = 0;
+	ptX = ptY = ktX = ktY = sX = sY = mX = mY = 0;
 	RefreshRopes = 0;
 	RefreshMobs = 0;
 	Moved = 0;

@@ -37,6 +37,7 @@ using namespace std;
 //ignore some warnings
 #pragma warning(disable: 4945)
 #pragma warning(disable: 4244)
+#pragma warning(disable: 4003)
 
 //constants
 #define ServerBase 0x01E26B10
@@ -68,6 +69,15 @@ using namespace std;
 #define StatsHP 0x00002734
 #define StatsMP (StatsHP+4)
 #define StatsEXP 0x00002658
+#define PortalBase 0x1e2b6a0
+#define PortalsOff 4
+#define PortalsCountOff -4
+#define PortalsFirst 4
+#define PortalNextOff 8
+#define PortalXOff 0xC
+#define PortalYOff (PortalXOff + 4)
+#define PortalTMOff 0x1C
+
 
 //6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
 

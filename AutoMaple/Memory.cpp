@@ -17,24 +17,24 @@ int __stdcall Memory::Write( void* pvAddress, void* pvWriteBuffer, size_t Size )
 
 		if ( VirtualProtect ( ( LPVOID )dwAddress, dwSize, dwOldProtectionFlags, &dwOldProtectionFlags ) )
 		{
-			if ( FlushInstructionCache ( GetCurrentProcess(), ( LPCVOID )dwAddress, dwSize ) )
+			/*if ( FlushInstructionCache ( GetCurrentProcess(), ( LPCVOID )dwAddress, dwSize ) )
 			{
 				iReturnCode = 0;
 			}
 			else
 			{
 				iReturnCode = GetLastError();
-			}
+			}*/
 		}
-		else
+		/*else
 		{
 			iReturnCode = GetLastError();
-		}
+		}*/
 	}
-	else
+	/*else
 	{
 		iReturnCode = GetLastError();
-	}
+	}*/
 
 	return iReturnCode;
 };

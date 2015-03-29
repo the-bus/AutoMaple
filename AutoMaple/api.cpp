@@ -1,6 +1,7 @@
 #include "inc.h"
 
 /* the Lua interpreter */
+volatile bool quit;
 lua_State* L = NULL;
 
 void KeyPressNoHook(int32_t key)
@@ -63,6 +64,8 @@ void RECT2table(RECT r) {
 }
 
 void log(const char * func, int len) {
+	if (!logfuncs)
+		return;
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
 	lua_getinfo(L, "l", &ar);
@@ -79,7 +82,7 @@ void log(const char * func, int len) {
 	Log(c);
 	delete c;
 }
-
+bool inuse = false;
 //sketchy lua macros
 
 #define getval() auto val = 
@@ -88,7 +91,9 @@ void log(const char * func, int len) {
 
 #define rawelementwrap(func, name, in, ret, ...) { name, [](lua_State *L) { \
 	log(name, sizeof(name)); \
+	inuse = true; \
 	in space::func(__VA_ARGS__); \
+	inuse = false; \
 	ret; \
 	return 0; \
 } },
@@ -130,6 +135,7 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(WaitForBreath)
 
+	samewrapRetVal(GetItemCount)
 	samewrapRetVal(GetMapID)
 	samewrapRetVal(GetMobCount)
 	samewrapVal(GetMobClosest, POINT2table(val); return 1;)
@@ -182,6 +188,10 @@ static const luaL_Reg mapleLib[] = {
 	{ NULL, NULL }
 };
 
+void clean() {
+	if (L != NULL)
+		quit = true;
+}
 int index(lua_State *L, const char * c) {
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
@@ -210,8 +220,17 @@ int index(lua_State *L, const char * c) {
 }
 
 ///////////////////////////////////////
-
+void LineHookFunc(lua_State *L, lua_Debug *ar)
+{
+	if (ar->event == LUA_HOOKCOUNT)
+		if (quit && inuse == false) {
+			lua_error(L);
+		}
+}
 void initLua(const char * buf) {
+	clean();
+	while (quit);
+
 	/* initialize Lua */
 	L = luaL_newstate();
 
@@ -220,7 +239,7 @@ void initLua(const char * buf) {
 
 	lua_getglobal(L, "_G");
 	luaL_newmetatable(L, "_GMETA");
-	lua_pushcclosure(L, [](lua_State *L) -> int {
+	lua_pushcclosure(L, [](lua_State *L) {
 		index(L, "global: ");
 		return 0;
 	}, 0);
@@ -232,12 +251,14 @@ void initLua(const char * buf) {
 
 	lua_getglobal(L, "maple");
 	luaL_newmetatable(L, "mapleMETA");
-	lua_pushcclosure(L, [](lua_State *L) -> int {
+	lua_pushcclosure(L, [](lua_State *L) {
 		index(L, "maple: ");
 		return 0;
 	}, 0);
 	lua_setfield(L, -2, "__index");
 	lua_setmetatable(L, -2);
+
+	lua_sethook(L, &LineHookFunc, LUA_MASKCOUNT, 1);
 
 	/* run the script */
 	int error = luaL_loadfile(L, buf);
@@ -260,5 +281,8 @@ void initLua(const char * buf) {
 	/* cleanup Lua */
 	lua_close(L);
 	L = NULL;
-	
+#ifndef WIN
+	Hacks::Reset();
+#endif
+	quit = false;
 }

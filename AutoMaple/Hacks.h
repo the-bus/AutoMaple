@@ -17,6 +17,7 @@ public:
 	//times are in milliseconds (1000 = 1 second),
 	//unless otherwise noted
 
+	//maple.Log prints to the debug log
 	//maple.Message creates a messagebox with a string
 	//maple.MessageInt is like Message for ints instead of strings
 	//maple.Wait or maple.Sleep waits a certain amount of time
@@ -60,6 +61,8 @@ public:
 	static arrpair(POINT *) GetMobs(); //returns a table of mobs as points
 	static arrpair(RECT *) GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle
+
+	static int32_t GetItemCount(); //returns the number of items on the map
 	
 	static void AutoHP(int32_t k, int32_t minhp);
 	static void AutoMP(int32_t k, int32_t minmp);

@@ -77,6 +77,8 @@ using namespace std;
 #define PortalXOff 0xC
 #define PortalYOff (PortalXOff + 4)
 #define PortalTMOff 0x1C
+#define ItemBase 0x01E2B890
+#define ItemCountOff 0x00000014
 
 
 //6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
@@ -104,9 +106,10 @@ using namespace std;
 extern lua_State* L;
 extern HMODULE mod;
 extern HANDLE hThread;
+extern volatile bool quit;
+extern volatile bool logfuncs;
 
 //macros
-
 #define jmp(frm, to) (int)(((int)(to) - (int)(frm)) - 5)
 #define OpenThread(func) CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&func, NULL, NULL, NULL);
 #define OpenThreadArg(func, arg) CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&func, arg, NULL, NULL);
@@ -135,5 +138,4 @@ T DerefOff(uint64_t addr, int64_t off, T bad) {
 
 //etc
 void initLua(const char * buf);
-void Close();
 void clean();

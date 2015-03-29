@@ -8,6 +8,7 @@ ref class ManagedGlobals {
 		static Home ^ myHome = nullptr;
 		static marshal_context ^ context = gcnew marshal_context();
 };
+volatile bool logfuncs = true;
 void GUIWork()
 {
 	Application::EnableVisualStyles();
@@ -22,40 +23,25 @@ void Main(void)
 {
 	GUIWork(); // create new instance of managed application
 }
-HANDLE h = NULL;
-void clean() {
-	if (h != NULL) {
-		CloseThread(h);
-		h = NULL;
-	}
-	if (L != NULL) {
-		lua_close(L);
-		L = NULL;
-	}
-	#ifndef WIN
-		Hacks::Reset();
-	#endif
-}
 #define LEN 32768
+char buf[LEN];
 void PathFromTextbox(char buf[LEN], TextBox ^ t) {
 	const char* str = ManagedGlobals::context->marshal_as<const char*>(t->Text);
 	GetFilePathExe(buf, str, LEN);
 }
 System::Void Home::button1_Click(System::Object^  sender, System::EventArgs^  e) {
-	clean();
-	//Hacks::HookFrame();
-	char buf[LEN];
 	PathFromTextbox(buf, textBox1);
-	h = OpenThreadArg(initLua, buf);
+	//Hacks::HookFrame();
+	OpenThreadArg(initLua, buf);
 }
 System::Void Home::button2_Click(System::Object^  sender, System::EventArgs^  e) {
 	clean();
 }
 System::Void Home::Home_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
 	timer1->Stop();
-	clean();
 }
 System::Void Home::Home_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e) {
+	clean();
 	#ifndef WIN
 		FreeLibraryAndExitThread(mod, 0);
 	#endif
@@ -139,6 +125,9 @@ System::Void Home::Log(const char * c) {
 	while (listBox1->Items->Count > 100)
 		listBox1->Items->RemoveAt(listBox1->Items->Count - 1);
 	listBox1->Items->Insert(0, gcnew String(c));
+}
+System::Void Home::checkBox2_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+	logfuncs = checkBox2->Checked;
 }
 void DoLog(const char * c) {
 	ManagedGlobals::myHome->Log(c);

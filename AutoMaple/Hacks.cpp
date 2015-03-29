@@ -48,6 +48,8 @@ int32_t ptP;
 byte * PortalSpace[128] = { 0 };
 //uint32_t ptRet;
 
+int32_t ItemCount;
+
 Concurrency::concurrent_queue<void(*)()> functions;
 
 #define timeoutWhile(cond) \
@@ -396,11 +398,15 @@ void FetchMap() {
 		RefreshPortals = 0;
 	}
 }
+void FetchItems() {
+	ItemCount = DerefOff<int32_t>(ItemBase, ItemCountOff, -1);
+}
 void FetchAll() {
 	FetchChar();
 	FetchMapInfo();
 	FetchMob();
 	FetchMap();
+	FetchItems();
 }
 GetWrapLock(arrpair(strmap(int32_t) *), Portals)
 GetWrapLock(arrpair(POINT *), Mobs)
@@ -410,6 +416,7 @@ GetWrap(RECT, Map)
 GetWrap(int32_t, MapID)
 GetWrap(int32_t, MobCount)
 GetWrap(POINT, MobClosest)
+GetWrap(int32_t, ItemCount)
 void Hacks::WaitForBreath() {
 	do {
 		WaitForFrame();

@@ -49,7 +49,7 @@ void arr2table(T * a, void (f)(T), size_t len) {
 }
 
 template<typename T>
-void map2table(map<const char *, T> m) {
+void map2table(strmap(T) m) {
 	lua_createtable(L, 0, m.size());
 	for (auto p : m)
 	{
@@ -61,6 +61,33 @@ void map2table(map<const char *, T> m) {
 void RECT2table(RECT r) {
 	POINT val[] = { POINT{ r.left, r.bottom }, POINT{ r.right, r.top } };
 	arr2table<POINT>(val, POINT2table, 2);
+}
+
+int index(lua_State *L, const char * c) {
+	lua_Debug ar;
+	lua_getstack(L, 1, &ar);
+	lua_getinfo(L, "nSl", &ar);
+	uint32_t line = ar.currentline;
+	const char emsg[] = "Error! The following does not exist in ";
+	uint32_t sz;
+	const char * err = lua_tolstring(L, -1, &sz);
+#define lineMsg "\nLine: "
+	char ln[10 + sizeof(lineMsg) + 1];
+	sprintf_s(ln, lineMsg "%d", line);
+	sz += strlen(c) + sizeof(emsg) + strlen(ln) + 1;
+	char * msg = new char[sz];
+	if (!msg)
+		goto end;
+	msg[0] = '\0';
+	strcat_s(msg, sz, emsg);
+	strcat_s(msg, sz, c);
+	strcat_s(msg, sz, err);
+	strcat_s(msg, sz, ln);
+	Message(msg);
+end:
+	delete msg;
+	clean();
+	return 0;
 }
 
 void log(const char * func, int len) {
@@ -82,7 +109,13 @@ void log(const char * func, int len) {
 	Log(c);
 	delete c;
 }
-bool inuse = false;
+
+void Inventory(arrpair(strmap(int32_t) *) * val) {
+	arr2table<arrpair(strmap(int32_t) *)>(val, [](arrpair(strmap(int32_t) *) tab) {
+		arr2table<strmap(int32_t)>(tab.first, map2table, tab.second);
+	}, 5);
+}
+
 //sketchy lua macros
 
 #define getval() auto val = 
@@ -91,9 +124,7 @@ bool inuse = false;
 
 #define rawelementwrap(func, name, in, ret, ...) { name, [](lua_State *L) { \
 	log(name, sizeof(name)); \
-	inuse = true; \
 	in space::func(__VA_ARGS__); \
-	inuse = false; \
 	ret; \
 	return 0; \
 } },
@@ -143,6 +174,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrapVal(GetMobs, arr2table(val.first, POINT2table, val.second); return 1;)
 	samewrapVal(GetRopes, arr2table(val.first, RECT2table, val.second); return 1;)
 	samewrapVal(GetPortals, arr2table(val.first, map2table, val.second); return 1;)
+	samewrapVal(GetInventory, Inventory(val); return 1;)
 	samewrapVal(GetMap, RECT2table(val); return 1;)
 
 	samewrap(AutoHP, integer(1), integer(2)) //key, minimum value
@@ -192,40 +224,12 @@ void clean() {
 	if (L != NULL)
 		quit = true;
 }
-int index(lua_State *L, const char * c) {
-	lua_Debug ar;
-	lua_getstack(L, 1, &ar);
-	lua_getinfo(L, "nSl", &ar);
-	uint32_t line = ar.currentline;
-	const char emsg[] = "Error! The following does not exist in ";
-	uint32_t sz;
-	const char * err = lua_tolstring(L, -1, &sz);
-#define lineMsg "\nLine: "
-	char ln[10 + sizeof(lineMsg) + 1];
-	sprintf_s(ln, lineMsg "%d", line);
-	sz += strlen(c) + sizeof(emsg) + strlen(ln) + 1;
-	char * msg = new char[sz];
-	if (!msg)
-		goto end;
-	msg[0] = '\0';
-	strcat_s(msg, sz, emsg);
-	strcat_s(msg, sz, c);
-	strcat_s(msg, sz, err);
-	strcat_s(msg, sz, ln);
-	Message(msg);
-	end:
-	delete msg;
-	clean();
-	return 0;
-}
-
 ///////////////////////////////////////
 void LineHookFunc(lua_State *L, lua_Debug *ar)
 {
 	if (ar->event == LUA_HOOKCOUNT)
-		if (quit && inuse == false) {
+		if (quit)
 			lua_error(L);
-		}
 }
 void initLua(const char * buf) {
 	clean();

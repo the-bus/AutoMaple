@@ -63,6 +63,11 @@ public:
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle
 
 	static int32_t GetItemCount(); //returns the number of items on the map
+
+	static arrpair(strmap(int32_t) *) * GetInventory();
+		/* returns a 2D array where the first array has inventory tabs (0 for eqp, 4 for inv)
+		the inner array is the item(s) at a slot
+		every item(s) has an id and quantity */
 	
 	static void AutoHP(int32_t k, int32_t minhp);
 	static void AutoMP(int32_t k, int32_t minmp);

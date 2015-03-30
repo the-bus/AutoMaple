@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MapleStructs.h"
+#include "inc.h"
 
 class MaplePacket
 {

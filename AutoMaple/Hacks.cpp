@@ -32,6 +32,9 @@ atomic<uint8_t> RefreshRopes;
 arrpair(strmap(int32_t) *) Portals;
 atomic<uint8_t> RefreshPortals;
 
+arrpair(strmap(int32_t) *) Inventory[5];
+atomic<uint8_t> RefreshInventory;
+
 int32_t Xoff;
 int32_t MoveDelay;
 
@@ -212,7 +215,7 @@ void FetchMob() {
 		goto end;
 	mob -= 0x10; // first mob
 	if (RefreshMobs != 0) {
-		delete Mobs.first;
+		delete [] Mobs.first;
 		Mobs.first = new POINT[MobCount];
 	}
 	uint32_t i = 0;
@@ -258,7 +261,7 @@ boolean InBoundsY(int32_t y) {
 void FetchRopes() {
 	auto Rope = DerefOff<uint32_t>(MapBase, RopeOff, 0);
 	auto RopeCount = Deref<uint32_t>(Rope - 4, 0) - 1;
-	delete Ropes.first;
+	delete [] Ropes.first;
 	Ropes.first = new RECT[RopeCount];
 	//vector<RECT> rects;
 	Rope += 0x2C;
@@ -285,7 +288,7 @@ void FetchRopes() {
 void FetchPortals(void(*f)(uint32_t, uint32_t)) {
 	auto Portal = DerefOff<uint32_t>(PortalBase, PortalsOff, 0);
 	auto PortalCount = Deref<uint32_t>(Portal + PortalsCountOff, 0);
-	delete Portals.first;
+	delete [] Portals.first;
 	Portals.first = new strmap(int32_t)[PortalCount];
 	Portals.second = PortalCount;
 	Portal += PortalsFirst;
@@ -383,6 +386,29 @@ DoFuncFrameWrap(Teleport,
 	ptX = x;
 	ptY = y;,
 	int32_t x, int32_t y)
+void FetchInventory() {
+	if (RefreshInventory == 0)
+		return;
+	for (auto tab : Inventory)
+		delete [] tab.first;
+	auto tabs = get_inv();
+	uint32_t reorder[] = { 0, 1, 3, 2, 4 };
+	uint32_t ii = 0;
+	for (auto tab : tabs) {
+		uint32_t i = reorder[ii];
+		int j = 0;
+		Inventory[i].first = new strmap(int32_t)[tab.size()];
+		for (auto item : tab) {
+			//Inventory[i].first[j].insert(make_pair("index", item->index));
+			Inventory[i].first[j].insert(make_pair("id", item->item_id));
+			Inventory[i].first[j].insert(make_pair("quantity", item->quantity));
+			j++;
+		}
+		Inventory[i].second = j;
+		ii++;
+	}
+	RefreshInventory = 0;
+}
 void FetchMap() {
 	auto MapLeft = DerefOff<int32_t>(MapBase, MapLeftOff, 0);
 	auto MapRight = DerefOff<int32_t>(MapBase, MapRightOff, 0);
@@ -407,7 +433,9 @@ void FetchAll() {
 	FetchMob();
 	FetchMap();
 	FetchItems();
+	FetchInventory();
 }
+GetWrapLock(arrpair(strmap(int32_t) *) *, Inventory)
 GetWrapLock(arrpair(strmap(int32_t) *), Portals)
 GetWrapLock(arrpair(POINT *), Mobs)
 GetWrapLock(arrpair(RECT *), Ropes)
@@ -648,6 +676,7 @@ void Hacks::Reset() {
 	ptX = ptY = ktX = ktY = sX = sY = mX = mY = 0;
 	RefreshRopes = 0;
 	RefreshMobs = 0;
+	RefreshInventory = 0;
 	Moved = 0;
 	timeout = 0;
 	//UnHookFrame();

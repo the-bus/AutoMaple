@@ -18,6 +18,9 @@
     <Filter Include="Packet">
       <UniqueIdentifier>{2f9e9211-8aee-4d4f-b62e-8aac0e1a9b64}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Inventory">
+      <UniqueIdentifier>{7c0cb52c-4320-455d-b4e1-350c67aa8cca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Home.cpp">
@@ -40,6 +43,9 @@
     </ClCompile>
     <ClCompile Include="MaplePacket.cpp">
       <Filter>Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="Inventory.cpp">
+      <Filter>Inventory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +81,9 @@
     </ClInclude>
     <ClInclude Include="MapleStructs.h">
       <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="Inventory.h">
+      <Filter>Inventory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

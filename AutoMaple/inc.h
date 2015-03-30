@@ -1,6 +1,8 @@
 //library includes
 #pragma once
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
 #include <string.h>
 #include <iostream>
 #include <fstream>
@@ -102,6 +104,7 @@ using namespace std;
 #include "Memory.h"
 #include "Hacks.h"
 #include "MaplePacket.h"
+#include "Inventory.h"
 
 extern lua_State* L;
 extern HMODULE mod;

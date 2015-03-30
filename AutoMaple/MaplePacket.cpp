@@ -1,4 +1,5 @@
 #include "MaplePacket.h"
+#include "MapleStructs.h"
 
 #include <algorithm>
 #include <iomanip>

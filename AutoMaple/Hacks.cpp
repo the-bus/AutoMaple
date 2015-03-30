@@ -392,10 +392,8 @@ void FetchInventory() {
 	for (auto tab : Inventory)
 		delete [] tab.first;
 	auto tabs = get_inv();
-	uint32_t reorder[] = { 0, 1, 3, 2, 4 };
-	uint32_t ii = 0;
+	uint32_t i = 0;
 	for (auto tab : tabs) {
-		uint32_t i = reorder[ii];
 		int j = 0;
 		Inventory[i].first = new strmap(int32_t)[tab.size()];
 		for (auto item : tab) {
@@ -405,7 +403,7 @@ void FetchInventory() {
 			j++;
 		}
 		Inventory[i].second = j;
-		ii++;
+		i++;
 	}
 	RefreshInventory = 0;
 }

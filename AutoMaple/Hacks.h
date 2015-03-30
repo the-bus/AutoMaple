@@ -65,8 +65,13 @@ public:
 	static int32_t GetItemCount(); //returns the number of items on the map
 
 	static arrpair(strmap(int32_t) *) * GetInventory();
-		/* returns a 2D array where the first array has inventory tabs (0 for eqp, 4 for inv)
-		the inner array is the item(s) at a slot
+		/* returns a 2D array where the first array has inventory tabs
+		0 - eqp
+		1 - use
+		2 - setup
+		3 - etc
+		4 - cash
+		the inner array is the item(s) at a slot (left to right, then top to bottom)
 		every item(s) has an id and quantity */
 	
 	static void AutoHP(int32_t k, int32_t minhp);

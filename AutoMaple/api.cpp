@@ -177,8 +177,8 @@ static const luaL_Reg mapleLib[] = {
 	samewrapVal(GetInventory, Inventory(val); return 1;)
 	samewrapVal(GetMap, RECT2table(val); return 1;)
 
-	samewrap(AutoHP, integer(1), integer(2)) //key, minimum value
-	samewrap(AutoMP, integer(1), integer(2)) //key, minimum value
+	samewrap(AutoHP, integer(1), integer(2))
+	samewrap(AutoMP, integer(1), integer(2))
 
 	samewrapRetVal(SendPacket, lua_tostring(L, 1))
 
@@ -200,6 +200,7 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(FaceLeft)
 	samewrap(FaceRight)
+	samewrap(FaceTowards, integer(1))
 
 	samewrap(MoveTowardsX, integer(1))
 	samewrap(MoveTowardsY, integer(1))

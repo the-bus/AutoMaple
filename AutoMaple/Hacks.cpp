@@ -277,7 +277,7 @@ void FetchRopes() {
 		//if (!InBoundsY(y2))
 		//	break;
 		//rects.push_back(RECT{ x, y2, x, y1 });
-		Ropes.first[i] = RECT{ x, y2, x, y1 };
+		Ropes.first[i] = RECT{ x, y1, x, y2 };
 		Rope += 0x20;
 		Ropes.second = i + 1;
 	}
@@ -563,11 +563,11 @@ bool Hacks::RopeY(int32_t targetY) {
 	bool ret;
 	if (down) {
 		SetMove(0, 1);
-		timeoutWhile(targetY > GetChar()["y"])
+		timeoutWhile(targetY >= GetChar()["y"])
 	}
 	else {
 		SetMove(0, -1);
-		timeoutWhile(targetY < GetChar()["y"])
+		timeoutWhile(targetY <= GetChar()["y"])
 	}
 	SetMove(0, 0);
 	return ret;
@@ -578,6 +578,10 @@ void Hacks::FaceLeft() {
 }
 void Hacks::FaceRight() {
 	SetMove(1, 0);
+	SetMove(0, 0);
+}
+void Hacks::FaceTowards(int x) {
+	MoveTowardsX(x);
 	SetMove(0, 0);
 }
 void Hacks::KeyHoldFor(int32_t k, int32_t delay) {

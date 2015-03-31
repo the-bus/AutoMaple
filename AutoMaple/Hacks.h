@@ -74,8 +74,8 @@ public:
 		the inner array is the item(s) at a slot (left to right, then top to bottom)
 		every item(s) has an id and quantity */
 	
-	static void AutoHP(int32_t k, int32_t minhp);
-	static void AutoMP(int32_t k, int32_t minmp);
+	static void AutoHP(int32_t k, int32_t minhp); //key, minimum value
+	static void AutoMP(int32_t k, int32_t minmp); //key, minimum value
 
 	static bool SendPacket(const char * p); //send a packet
 
@@ -110,6 +110,7 @@ public:
 		
 		static void FaceLeft(); //moves left to face left
 		static void FaceRight(); //moves right to face right
+		static void FaceTowards(int x); //faces towards an x value
 		
 		static void MoveTowardsX(int32_t targetX); //calls SetMove with the direction towards the given x value
 		static void MoveTowardsY(int32_t targetY); //calls SetMove with the direction towards the given y value

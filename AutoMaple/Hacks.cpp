@@ -391,9 +391,10 @@ void FetchInventory() {
 		return;
 	for (auto tab : Inventory)
 		delete [] tab.first;
-	auto tabs = get_inv();
-	uint32_t i = 0;
-	for (auto tab : tabs) {
+	vector<maple::item*> tabs[5];
+	get_inv(tabs);
+	for (uint32_t i = 0; i < 5; i++) {
+		auto tab = tabs[i];
 		int j = 0;
 		Inventory[i].first = new strmap(int32_t)[tab.size()];
 		for (auto item : tab) {
@@ -403,7 +404,6 @@ void FetchInventory() {
 			j++;
 		}
 		Inventory[i].second = j;
-		i++;
 	}
 	RefreshInventory = 0;
 }
@@ -563,11 +563,11 @@ bool Hacks::RopeY(int32_t targetY) {
 	bool ret;
 	if (down) {
 		SetMove(0, 1);
-		timeoutWhile(targetY >= GetChar()["y"])
+		timeoutWhile(targetY > GetChar()["y"])
 	}
 	else {
 		SetMove(0, -1);
-		timeoutWhile(targetY <= GetChar()["y"])
+		timeoutWhile(targetY < GetChar()["y"])
 	}
 	SetMove(0, 0);
 	return ret;

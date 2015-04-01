@@ -14,4 +14,4 @@ namespace maple
 	};
 }
 
-vector<vector<maple::item*>> get_inv();
+void get_inv(vector<maple::item*> tabs[5]);

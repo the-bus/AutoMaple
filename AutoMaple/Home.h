@@ -38,15 +38,35 @@ namespace AutoMaple {
 
 	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel1;
 	private: System::Windows::Forms::Timer^  timer1;
-	private: System::Windows::Forms::Button^  button1;
+
 	private: System::Windows::Forms::Button^  button2;
+
+
+
+
+
+
+
+
+
+
+
+
+	private: System::Windows::Forms::Button^  button1;
+
+
+	private: System::Windows::Forms::CheckBox^  checkBox2;
+
+	private: System::Windows::Forms::CheckBox^  checkBox1;
+	private: System::Windows::Forms::ListBox^  listBox1;
 	private: System::Windows::Forms::TableLayoutPanel^  tableLayoutPanel2;
 	private: System::Windows::Forms::TextBox^  textBox1;
 	private: System::Windows::Forms::Label^  label1;
 	private: System::Windows::Forms::Button^  button3;
-	private: System::Windows::Forms::CheckBox^  checkBox1;
-	private: System::Windows::Forms::ListBox^  listBox1;
-	private: System::Windows::Forms::CheckBox^  checkBox2;
+
+
+
+
 
 	protected:
 
@@ -69,15 +89,15 @@ namespace AutoMaple {
 		{
 			this->components = (gcnew System::ComponentModel::Container());
 			this->tableLayoutPanel1 = (gcnew System::Windows::Forms::TableLayoutPanel());
-			this->checkBox2 = (gcnew System::Windows::Forms::CheckBox());
-			this->checkBox1 = (gcnew System::Windows::Forms::CheckBox());
+			this->listBox1 = (gcnew System::Windows::Forms::ListBox());
 			this->button3 = (gcnew System::Windows::Forms::Button());
-			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->tableLayoutPanel2 = (gcnew System::Windows::Forms::TableLayoutPanel());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->listBox1 = (gcnew System::Windows::Forms::ListBox());
+			this->checkBox1 = (gcnew System::Windows::Forms::CheckBox());
+			this->checkBox2 = (gcnew System::Windows::Forms::CheckBox());
+			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->tableLayoutPanel1->SuspendLayout();
 			this->tableLayoutPanel2->SuspendLayout();
@@ -87,22 +107,21 @@ namespace AutoMaple {
 			// 
 			this->tableLayoutPanel1->ColumnCount = 1;
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle()));
-			this->tableLayoutPanel1->Controls->Add(this->checkBox2, 0, 7);
-			this->tableLayoutPanel1->Controls->Add(this->checkBox1, 0, 4);
+			this->tableLayoutPanel1->Controls->Add(this->listBox1, 0, 6);
 			this->tableLayoutPanel1->Controls->Add(this->button3, 0, 1);
-			this->tableLayoutPanel1->Controls->Add(this->button1, 0, 3);
 			this->tableLayoutPanel1->Controls->Add(this->button2, 0, 2);
 			this->tableLayoutPanel1->Controls->Add(this->tableLayoutPanel2, 0, 0);
-			this->tableLayoutPanel1->Controls->Add(this->listBox1, 0, 8);
+			this->tableLayoutPanel1->Controls->Add(this->checkBox1, 0, 5);
+			this->tableLayoutPanel1->Controls->Add(this->checkBox2, 0, 4);
+			this->tableLayoutPanel1->Controls->Add(this->button1, 0, 3);
 			this->tableLayoutPanel1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->tableLayoutPanel1->Location = System::Drawing::Point(0, 0);
 			this->tableLayoutPanel1->Name = L"tableLayoutPanel1";
-			this->tableLayoutPanel1->RowCount = 9;
+			this->tableLayoutPanel1->RowCount = 7;
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
-			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle(System::Windows::Forms::SizeType::Absolute, 25)));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
 			this->tableLayoutPanel1->RowStyles->Add((gcnew System::Windows::Forms::RowStyle()));
@@ -110,29 +129,14 @@ namespace AutoMaple {
 			this->tableLayoutPanel1->Size = System::Drawing::Size(404, 381);
 			this->tableLayoutPanel1->TabIndex = 2;
 			// 
-			// checkBox2
+			// listBox1
 			// 
-			this->checkBox2->AutoSize = true;
-			this->checkBox2->Checked = true;
-			this->checkBox2->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->checkBox2->Location = System::Drawing::Point(3, 193);
-			this->checkBox2->Name = L"checkBox2";
-			this->checkBox2->Size = System::Drawing::Size(140, 17);
-			this->checkBox2->TabIndex = 3;
-			this->checkBox2->Text = L"Log maple function calls";
-			this->checkBox2->UseVisualStyleBackColor = true;
-			this->checkBox2->CheckedChanged += gcnew System::EventHandler(this, &Home::checkBox2_CheckedChanged);
-			// 
-			// checkBox1
-			// 
-			this->checkBox1->AutoSize = true;
-			this->checkBox1->Location = System::Drawing::Point(3, 168);
-			this->checkBox1->Name = L"checkBox1";
-			this->checkBox1->Size = System::Drawing::Size(196, 17);
-			this->checkBox1->TabIndex = 3;
-			this->checkBox1->Text = L"Dock left of MS window (may crash)";
-			this->checkBox1->UseVisualStyleBackColor = true;
-			this->checkBox1->CheckedChanged += gcnew System::EventHandler(this, &Home::checkBox1_CheckedChanged);
+			this->listBox1->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->listBox1->FormattingEnabled = true;
+			this->listBox1->Location = System::Drawing::Point(3, 214);
+			this->listBox1->Name = L"listBox1";
+			this->listBox1->Size = System::Drawing::Size(398, 164);
+			this->listBox1->TabIndex = 7;
 			// 
 			// button3
 			// 
@@ -148,21 +152,6 @@ namespace AutoMaple {
 			this->button3->Text = L"Open file in default program";
 			this->button3->UseVisualStyleBackColor = true;
 			this->button3->Click += gcnew System::EventHandler(this, &Home::button3_Click);
-			// 
-			// button1
-			// 
-			this->button1->AutoSize = true;
-			this->button1->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
-			this->button1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(0)));
-			this->button1->Location = System::Drawing::Point(3, 132);
-			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(398, 30);
-			this->button1->TabIndex = 3;
-			this->button1->Text = L"Run file from the MapleStory folder";
-			this->button1->UseVisualStyleBackColor = true;
-			this->button1->Click += gcnew System::EventHandler(this, &Home::button1_Click);
 			// 
 			// button2
 			// 
@@ -216,14 +205,44 @@ namespace AutoMaple {
 			this->label1->TabIndex = 0;
 			this->label1->Text = L"File to load from maplestory directory:";
 			// 
-			// listBox1
+			// checkBox1
 			// 
-			this->listBox1->Dock = System::Windows::Forms::DockStyle::Fill;
-			this->listBox1->FormattingEnabled = true;
-			this->listBox1->Location = System::Drawing::Point(3, 216);
-			this->listBox1->Name = L"listBox1";
-			this->listBox1->Size = System::Drawing::Size(398, 162);
-			this->listBox1->TabIndex = 3;
+			this->checkBox1->AutoSize = true;
+			this->checkBox1->Location = System::Drawing::Point(3, 191);
+			this->checkBox1->Name = L"checkBox1";
+			this->checkBox1->Size = System::Drawing::Size(196, 17);
+			this->checkBox1->TabIndex = 3;
+			this->checkBox1->Text = L"Dock left of MS window (may crash)";
+			this->checkBox1->UseVisualStyleBackColor = true;
+			this->checkBox1->CheckedChanged += gcnew System::EventHandler(this, &Home::checkBox1_CheckedChanged);
+			// 
+			// checkBox2
+			// 
+			this->checkBox2->AutoSize = true;
+			this->checkBox2->Checked = true;
+			this->checkBox2->CheckState = System::Windows::Forms::CheckState::Checked;
+			this->checkBox2->Location = System::Drawing::Point(3, 168);
+			this->checkBox2->Name = L"checkBox2";
+			this->checkBox2->Size = System::Drawing::Size(140, 17);
+			this->checkBox2->TabIndex = 3;
+			this->checkBox2->Text = L"Log maple function calls";
+			this->checkBox2->UseVisualStyleBackColor = true;
+			this->checkBox2->CheckedChanged += gcnew System::EventHandler(this, &Home::checkBox2_CheckedChanged);
+			// 
+			// button1
+			// 
+			this->button1->AutoSize = true;
+			this->button1->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
+			this->button1->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
+			this->button1->Location = System::Drawing::Point(3, 132);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(398, 30);
+			this->button1->TabIndex = 3;
+			this->button1->Text = L"Run file from the MapleStory folder";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &Home::button1_Click);
 			// 
 			// timer1
 			// 

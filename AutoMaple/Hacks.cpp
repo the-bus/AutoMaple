@@ -1,21 +1,31 @@
 #include "Hacks.h"
 #include <concurrent_queue.h>
 
+#define POLL 50
+
+CRITICAL_SECTION frame;
+
 int32_t sX, sY;
 int32_t mX, mY;
 int32_t ktX, ktY;
 int32_t ptX, ptY;
 
-atomic<uint8_t> frameActive = 0;
+volatile uint8_t frameDone;
 
 uint32_t fRet;
 uint32_t fOesi; //frame cave's original esi
 uint32_t sOeax; //used by SP to store eax
 uint32_t mOeax;
 
+volatile uint8_t interrupt;
+
 #define kLen 0x100
-atomic<uint8_t> pressKeys[kLen] = { 0 };
-atomic<uint8_t> holdKeys[kLen] = { 0 };
+#define KEY_UP 0
+#define KEY_HOLDING 1
+#define KEY_RELEASING 2
+#define KEY_PRESSING 3
+#define KEY_SPAMMING 4
+volatile uint8_t keyStates[kLen];
 
 strmap(double) Char;
 uint32_t MapID;
@@ -23,17 +33,17 @@ uint32_t MapID;
 int32_t MobCount;
 POINT MobClosest;
 arrpair(POINT *) Mobs;
-atomic<uint8_t> RefreshMobs;
+volatile uint8_t RefreshMobs;
 
 arrpair(RECT *) Ropes;
 RECT Map;
-atomic<uint8_t> RefreshRopes;
+volatile uint8_t RefreshRopes;
 
 arrpair(strmap(int32_t) *) Portals;
-atomic<uint8_t> RefreshPortals;
+volatile uint8_t RefreshPortals;
 
 arrpair(strmap(int32_t) *) Inventory[5];
-atomic<uint8_t> RefreshInventory;
+volatile uint8_t RefreshInventory;
 
 int32_t Xoff;
 int32_t MoveDelay;
@@ -57,8 +67,9 @@ Concurrency::concurrent_queue<void(*)()> functions;
 
 #define timeoutWhile(cond) \
 do { \
-		time_t stime = time(NULL); \
-		while (cond && (timeout <= 0 || time(NULL) - stime < timeout)); \
+		time_t ftime = time(NULL) + timeout; \
+		while (cond && (timeout <= 0 || time(NULL) < ftime) && interrupt == 0) \
+			Sleep(POLL); \
 		ret = !(cond); \
 } while (0);
 #define DoFuncFrameWrap(func, code, ...) \
@@ -68,39 +79,43 @@ void Hacks::func(__VA_ARGS__) { \
 }
 #define GetWrap(type, attr, code) \
 type Hacks::Get ## attr() { \
-	WaitForFrame(); \
+	EnterCriticalSection(&frame); \
 	code \
+	LeaveCriticalSection(&frame); \
 	return attr; \
 }
 #define GetWrapLock(type, attr) GetWrap(type, attr,  \
 	Refresh ## attr = 1; \
 	while (Refresh ## attr != 0) \
-		Sleep(0); \
+		Sleep(POLL); \
 )
-void WaitForFrame() {
-	while (frameActive != 0)
-		Sleep(0);
+void Hacks::Interrupt() {
+	interrupt = 1;
 }
 void WaitForReframe() {
-	while (frameActive != 1)
-		Sleep(0);
+	frameDone = 0;
+	while (frameDone == 0)
+		Sleep(POLL);
 }
 void DoFuncFrame(void(*f)()) {
-	WaitForFrame();
+	EnterCriticalSection(&frame);
 	functions.push(f);
+	LeaveCriticalSection(&frame);
 	WaitForReframe();
 }
 void Hacks::KeySpam(int32_t k) {
-	pressKeys[k] = 2;
+	KeyUp(k);
+	keyStates[k] = KEY_SPAMMING;
 }
 void Hacks::KeyUnSpam(int32_t k) {
-	pressKeys[k] = 0;
+	keyStates[k] = 0;
 }
 void Hacks::KeyPress(int32_t k)
 {
-	pressKeys[k] = 1;
-	while (pressKeys[k] != 0)
-		Sleep(0);
+	KeyUp(k);
+	keyStates[k] = KEY_PRESSING;
+	while (keyStates[k] != KEY_UP)
+		Sleep(POLL);
 	return;
 }
 void Hacks::AutoHP(int32_t k, int32_t minhp) {
@@ -113,25 +128,27 @@ void Hacks::AutoMP(int32_t k, int32_t minmp) {
 }
 void Hacks::KeyDown(int32_t k)
 {
-	holdKeys[k] = 1;
+	keyStates[k] = KEY_HOLDING;
 }
 void Hacks::KeyUp(int32_t k)
 {
-	holdKeys[k] = 2;
-	while (pressKeys[k] != 0)
-		Sleep(0);
+	if (keyStates[k] != KEY_HOLDING)
+		return;
+	keyStates[k] = KEY_RELEASING;
+	while (keyStates[k] != KEY_UP)
+		Sleep(POLL);
 	return;
 }
 void DoEnableAutoPortal() {
 	byte enable = 0x75;
 	Memory::Write((void*)AutoPortal, &enable, 1);
 }
-DoFuncFrameWrap(EnableAutoPortal, ;)
+DoFuncFrameWrap(EnableAutoPortal)
 void DoDisableAutoPortal() {
 	byte disable = 0x74;
 	Memory::Write((void*)AutoPortal, &disable, 1);
 }
-DoFuncFrameWrap(DisableAutoPortal, ;)
+DoFuncFrameWrap(DisableAutoPortal)
 /*translates to:
 void Hacks::DisableAutoPortal() {
 	DoFuncFrame(DoDisableAutoPortal);
@@ -165,12 +182,12 @@ void DoHookSP() {
 	uint32_t addr = (uint32_t)SPCave;
 	Memory::Write(SP, &addr, 4);
 }
-DoFuncFrameWrap(HookSP, ;)
+DoFuncFrameWrap(HookSP)
 void DoUnHookSP() {
 	uint32_t orig = SPOrig;
 	Memory::Write(SP, &orig, 4);
 }
-DoFuncFrameWrap(UnHookSP, ;)
+DoFuncFrameWrap(UnHookSP)
 void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;
 	sY = y;
@@ -445,7 +462,9 @@ GetWrap(POINT, MobClosest)
 GetWrap(int32_t, ItemCount)
 void Hacks::WaitForBreath() {
 	do {
-		WaitForFrame();
+		EnterCriticalSection(&frame);
+		uint32_t t = Char["breath"];
+		LeaveCriticalSection(&frame);
 		Sleep(Char["breath"]);
 	} while (Char["breath"] != 0);
 	return;
@@ -472,19 +491,18 @@ void DoHookMove() {
 	Memory::Write((void*)(MoveJmp + 1), &distance, 4);
 	Memory::Write((void*)(MoveJmp + 5), &nops, 3);
 }
-DoFuncFrameWrap(HookMove, ;)
+DoFuncFrameWrap(HookMove)
 void DoUnHookMove() {
 	byte orig2[] = { 0x89, 0x7C, 0x24, 0x20, 0x89, 0x7C, 0x24, 0x1C };
 	Memory::Write((void*)MoveJmp, &orig2, 8);
 	byte orig[] = { 0xFF, 0x15, 0xC0, 0xB8, 0xE3, 0x01 };
 	Memory::Write(MoveDisable, &orig, 6);
 }
-DoFuncFrameWrap(UnHookMove, ;)
+DoFuncFrameWrap(UnHookMove)
 void Hacks::ResetKeys() {
 	for (uint32_t i = 0; i < kLen; i++) {
-		if (holdKeys[i] == 1)
-			KeyUp(i);
-		pressKeys[i] = 0;
+		KeyUp(i);
+		keyStates[i] = KEY_UP;
 	}
 }
 void Hacks::SetMove(int32_t dirX, int32_t dirY) {
@@ -607,37 +625,38 @@ void SendKey(uint32_t VK, uint32_t mask) {
 }
 void SendKeys() {
 	if (HPMin > 0 && Char["hp"] <= HPMin)
-		pressKeys[HPKey] = 1;
+		keyStates[HPKey] = KEY_PRESSING;
 	if (MPMin > 0 && Char["hp"] <= MPMin)
-		pressKeys[MPKey] = 1;
+		keyStates[MPKey] = KEY_PRESSING;
 	for (uint32_t i = 0; i < kLen; i++) {
-		if (holdKeys[i] == 1) {
+		if (keyStates[i] == KEY_HOLDING) {
 			SendKey(i, MS_DOWN);
 		}
-		else if (holdKeys[i] == 2) {
+		else if (keyStates[i] == KEY_RELEASING) {
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
-			holdKeys[i] = 0;
+			keyStates[i] = 0;
 		}
-		else if (pressKeys[i] != 0) {
+		else if (keyStates[i] == KEY_PRESSING || keyStates[i] == KEY_SPAMMING) {
 			SendKey(i, MS_DOWN);
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
-			if (pressKeys[i] == 1)
-				pressKeys[i] = 0;
+			if (keyStates[i] == KEY_PRESSING)
+				keyStates[i] = 0;
 		}
 	}
 }
 __declspec(naked) void FrameCave() {
 	__asm pushad
-	frameActive = 1;
+	EnterCriticalSection(&frame);
 	FetchAll();
 	void (*f)();
 	while (functions.try_pop(f)) {
 		f();
 	}
 	SendKeys();
-	frameActive = 0;
+	frameDone = 1;
+	LeaveCriticalSection(&frame);
 	__asm {
 		popad
 		push fRet
@@ -645,6 +664,9 @@ __declspec(naked) void FrameCave() {
 	}
 }
 void Hacks::HookFrame() {
+	DeleteCriticalSection(&frame);
+	InitializeCriticalSection(&frame);
+	frameDone = 0;
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
 	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
 	fRet = (uint32_t)(dispatchAddy)+2;
@@ -681,5 +703,6 @@ void Hacks::Reset() {
 	RefreshInventory = 0;
 	Moved = 0;
 	timeout = 0;
+	interrupt = 0;
 	//UnHookFrame();
 }

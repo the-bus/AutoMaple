@@ -11,6 +11,7 @@ public:
 	static void HookFrame();
 	static void UnHookFrame();
 	static void Reset();
+	static void Interrupt(); //stops timeoutWhiles
 
 	//in the lua api:
 	//prepend all methods with "maple."

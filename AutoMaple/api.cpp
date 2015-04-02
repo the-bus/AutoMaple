@@ -225,6 +225,14 @@ void clean() {
 	if (L != NULL)
 		quit = true;
 }
+void cleanup() {
+	lua_close(L);
+	L = NULL;
+#ifndef WIN
+	Hacks::Reset();
+#endif
+	quit = false;
+}
 ///////////////////////////////////////
 void LineHookFunc(lua_State *L, lua_Debug *ar)
 {
@@ -284,10 +292,5 @@ void initLua(const char * buf) {
 		lua_pcall(L, 0, LUA_MULTRET, 0); // once again, returns non-0 on error, you should probably add a little check
 	}
 	/* cleanup Lua */
-	lua_close(L);
-	L = NULL;
-#ifndef WIN
-	Hacks::Reset();
-#endif
-	quit = false;
+	cleanup();
 }

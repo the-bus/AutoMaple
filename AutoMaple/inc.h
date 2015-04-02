@@ -23,9 +23,9 @@
 
 //#define WIN
 
-#ifndef _M_CEE
+/*#ifndef _M_CEE
 	#include <atomic>
-#endif
+#endif*/
 
 using namespace std;
 

@@ -31,44 +31,13 @@ void push(double d) {
 	lua_pushnumber(L, d);
 }
 
-void POINT2table(POINT p) {
-	lua_createtable(L, 0, 2);
-	push(p.x);
-	lua_setfield(L, -2, "x");
-	push(p.y);
-	lua_setfield(L, -2, "y");
-}
-
-template<typename T>
-void arr2table(T * a, void (f)(T), size_t len) {
-	lua_createtable(L, len, 0);
-	for (uint32_t i = 0; i < len; i++) {
-		f(a[i]);
-		lua_rawseti(L, -2, i);
-	}
-}
-
-template<typename T>
-void map2table(strmap(T) m) {
-	lua_createtable(L, 0, m.size());
-	for (auto p : m)
-	{
-		push(p.second);
-		lua_setfield(L, -2, p.first);
-	}
-}
-
-void RECT2table(RECT r) {
-	POINT val[] = { POINT{ r.left, r.bottom }, POINT{ r.right, r.top } };
-	arr2table<POINT>(val, POINT2table, 2);
-}
 
 int index(lua_State *L, const char * c) {
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
 	lua_getinfo(L, "nSl", &ar);
 	uint32_t line = ar.currentline;
-	const char emsg[] = "Error! The following does not exist in ";
+	const char emsg[] = "Error! The following does not exist";
 	uint32_t sz;
 	const char * err = lua_tolstring(L, -1, &sz);
 #define lineMsg "\nLine: "
@@ -90,6 +59,10 @@ end:
 	return 0;
 }
 
+int default_index(lua_State *L) {
+	return index(L, ": ");
+}
+
 void log(const char * func, int len) {
 	if (!logfuncs)
 		return;
@@ -108,6 +81,48 @@ void log(const char * func, int len) {
 	strcat_s(c, sz, func);
 	Log(c);
 	delete c;
+}
+
+void setindexmetatable() {
+	lua_newtable(L);
+	lua_pushcclosure(L, default_index, 0);
+	lua_setfield(L, -2, "__index");
+	lua_setmetatable(L, -2);
+}
+
+void POINT2table(POINT p) {
+	lua_createtable(L, 0, 2);
+	push(p.x);
+	lua_setfield(L, -2, "x");
+	push(p.y);
+	lua_setfield(L, -2, "y");
+	setindexmetatable();
+}
+
+template<typename T>
+void arr2table(T * a, void (f)(T), size_t len) {
+	lua_createtable(L, len, 0);
+	for (uint32_t i = 0; i < len; i++) {
+		f(a[i]);
+		lua_rawseti(L, -2, i);
+	}
+	setindexmetatable();
+}
+
+template<typename T>
+void map2table(strmap(T) m) {
+	lua_createtable(L, 0, m.size());
+	for (auto p : m)
+	{
+		push(p.second);
+		lua_setfield(L, -2, p.first);
+	}
+	setindexmetatable();
+}
+
+void RECT2table(RECT r) {
+	POINT val[] = { POINT{ r.left, r.bottom }, POINT{ r.right, r.top } };
+	arr2table<POINT>(val, POINT2table, 2);
 }
 
 void Inventory(arrpair(strmap(int32_t) *) * val) {
@@ -251,9 +266,9 @@ void initLua(const char * buf) {
 	luaL_openlibs(L);
 
 	lua_getglobal(L, "_G");
-	luaL_newmetatable(L, "_GMETA");
+	lua_newtable(L);
 	lua_pushcclosure(L, [](lua_State *L) {
-		index(L, "global: ");
+		index(L, " in global: ");
 		return 0;
 	}, 0);
 	lua_setfield(L, -2, "__index");
@@ -263,9 +278,9 @@ void initLua(const char * buf) {
 	lua_setglobal(L, "maple");
 
 	lua_getglobal(L, "maple");
-	luaL_newmetatable(L, "mapleMETA");
+	lua_newtable(L);
 	lua_pushcclosure(L, [](lua_State *L) {
-		index(L, "maple: ");
+		index(L, " in maple: ");
 		return 0;
 	}, 0);
 	lua_setfield(L, -2, "__index");

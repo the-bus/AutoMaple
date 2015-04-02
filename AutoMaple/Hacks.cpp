@@ -79,16 +79,20 @@ void Hacks::func(__VA_ARGS__) { \
 }
 #define GetWrap(type, attr, code) \
 type Hacks::Get ## attr() { \
-	EnterCriticalSection(&frame); \
 	code \
+	EnterCriticalSection(&frame); \
+	auto ret = attr; \
 	LeaveCriticalSection(&frame); \
-	return attr; \
+	return ret; \
 }
-#define GetWrapLock(type, attr) GetWrap(type, attr,  \
+#define GetWrapLock(type, attr) \
+type Hacks::Get ## attr() { \
 	Refresh ## attr = 1; \
 	while (Refresh ## attr != 0) \
 		Sleep(POLL); \
-)
+	auto ret = attr; \
+	return ret; \
+}
 void Hacks::Interrupt() {
 	interrupt = 1;
 }

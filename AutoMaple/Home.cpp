@@ -35,14 +35,12 @@ System::Void Home::button1_Click(System::Object^  sender, System::EventArgs^  e)
 	OpenThreadArg(initLua, buf);
 }
 System::Void Home::button2_Click(System::Object^  sender, System::EventArgs^  e) {
-	Hacks::Interrupt();
 	OpenThread(cleanwait);
 }
 System::Void Home::Home_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
 	timer1->Stop();
 }
 System::Void Home::Home_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e) {
-	Hacks::Interrupt();
 	OpenThread(cleanwait);
 	#ifndef WIN
 		FreeLibraryAndExitThread(mod, 0);

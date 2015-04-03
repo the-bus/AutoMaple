@@ -31,20 +31,16 @@ void push(double d) {
 	lua_pushnumber(L, d);
 }
 
-
-void clean() {
-	if (L != NULL)
-		quit = true;
-}
 void cleanup() {
 	lua_close(L);
 	L = NULL;
 	quit = false;
 }
 void cleanwait() {
-	if (quit)
+	if (quit || L == NULL)
 		return;
-	clean();
+	quit = true;
+	Hacks::Interrupt();
 	while (quit)
 		Sleep(0);
 #ifndef WIN
@@ -75,7 +71,7 @@ int index(lua_State *L, const char * c) {
 	Message(msg);
 end:
 	delete msg;
-	clean();
+	quit = true;
 	return 0;
 }
 

@@ -100,7 +100,6 @@ void log(const char * func, int len) {
 	strcat_s(c, sz, mymsg);
 	strcat_s(c, sz, func);
 	Log(c);
-	delete c;
 }
 
 void setindexmetatable() {

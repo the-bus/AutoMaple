@@ -32,6 +32,26 @@ void push(double d) {
 }
 
 
+void clean() {
+	if (L != NULL)
+		quit = true;
+}
+void cleanup() {
+	lua_close(L);
+	L = NULL;
+	quit = false;
+}
+void cleanwait() {
+	if (quit)
+		return;
+	clean();
+	while (quit)
+		Sleep(0);
+#ifndef WIN
+	Hacks::Reset();
+#endif
+}
+
 int index(lua_State *L, const char * c) {
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
@@ -236,18 +256,6 @@ static const luaL_Reg mapleLib[] = {
 	{ NULL, NULL }
 };
 
-void clean() {
-	if (L != NULL)
-		quit = true;
-}
-void cleanup() {
-	lua_close(L);
-	L = NULL;
-#ifndef WIN
-	Hacks::Reset();
-#endif
-	quit = false;
-}
 ///////////////////////////////////////
 void LineHookFunc(lua_State *L, lua_Debug *ar)
 {
@@ -256,8 +264,9 @@ void LineHookFunc(lua_State *L, lua_Debug *ar)
 			lua_error(L);
 }
 void initLua(const char * buf) {
-	clean();
-	while (quit);
+	if (quit)
+		return;
+	cleanwait();
 
 	/* initialize Lua */
 	L = luaL_newstate();

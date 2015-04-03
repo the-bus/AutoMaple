@@ -25,6 +25,8 @@ volatile uint8_t interrupt;
 #define KEY_RELEASING 2
 #define KEY_PRESSING 3
 #define KEY_SPAMMING 4
+#define KEY_NOT_HOLDING 5
+#define KEY_NOT_SPAMMING 6
 volatile uint8_t keyStates[kLen];
 
 strmap(double) Char;
@@ -109,7 +111,9 @@ void DoFuncFrame(void(*f)()) {
 }
 void Hacks::KeySpam(int32_t k) {
 	KeyUp(k);
-	keyStates[k] = KEY_SPAMMING;
+	keyStates[k] = KEY_NOT_SPAMMING;
+	while (keyStates[k] != KEY_SPAMMING)
+		Sleep(POLL);
 }
 void Hacks::KeyUnSpam(int32_t k) {
 	keyStates[k] = 0;
@@ -120,7 +124,6 @@ void Hacks::KeyPress(int32_t k)
 	keyStates[k] = KEY_PRESSING;
 	while (keyStates[k] != KEY_UP)
 		Sleep(POLL);
-	return;
 }
 void Hacks::AutoHP(int32_t k, int32_t minhp) {
 	HPKey = k;
@@ -132,7 +135,9 @@ void Hacks::AutoMP(int32_t k, int32_t minmp) {
 }
 void Hacks::KeyDown(int32_t k)
 {
-	keyStates[k] = KEY_HOLDING;
+	keyStates[k] = KEY_NOT_HOLDING;
+	while (keyStates[k] != KEY_HOLDING)
+		Sleep(POLL);
 }
 void Hacks::KeyUp(int32_t k)
 {
@@ -141,7 +146,6 @@ void Hacks::KeyUp(int32_t k)
 	keyStates[k] = KEY_RELEASING;
 	while (keyStates[k] != KEY_UP)
 		Sleep(POLL);
-	return;
 }
 void DoEnableAutoPortal() {
 	byte enable = 0x75;
@@ -471,7 +475,6 @@ void Hacks::WaitForBreath() {
 		LeaveCriticalSection(&frame);
 		Sleep(Char["breath"]);
 	} while (Char["breath"] != 0);
-	return;
 }
 __declspec(naked) void MoveCave() {
 	Moved = 1;
@@ -633,20 +636,23 @@ void SendKeys() {
 	if (MPMin > 0 && Char["hp"] <= MPMin)
 		keyStates[MPKey] = KEY_PRESSING;
 	for (uint32_t i = 0; i < kLen; i++) {
-		if (keyStates[i] == KEY_HOLDING) {
+		if (keyStates[i] == KEY_HOLDING || keyStates[i] == KEY_NOT_HOLDING) {
 			SendKey(i, MS_DOWN);
+			keyStates[i] = KEY_HOLDING;
 		}
 		else if (keyStates[i] == KEY_RELEASING) {
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
 			keyStates[i] = 0;
 		}
-		else if (keyStates[i] == KEY_PRESSING || keyStates[i] == KEY_SPAMMING) {
+		else if (keyStates[i] == KEY_PRESSING || keyStates[i] == KEY_SPAMMING || keyStates[i] == KEY_NOT_SPAMMING) {
 			SendKey(i, MS_DOWN);
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
 			if (keyStates[i] == KEY_PRESSING)
-				keyStates[i] = 0;
+				keyStates[i] = KEY_UP;
+			if (keyStates[i] == KEY_NOT_SPAMMING)
+				keyStates[i] = KEY_SPAMMING;
 		}
 	}
 }

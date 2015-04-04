@@ -8,7 +8,7 @@ ref class ManagedGlobals {
 		static Home ^ myHome = nullptr;
 		static marshal_context ^ context = gcnew marshal_context();
 };
-volatile bool logfuncs = true;
+bool logfuncs = true;
 void GUIWork()
 {
 	Application::EnableVisualStyles();
@@ -122,9 +122,12 @@ private:
 	T1 _arg1;
 };
 System::Void Home::Log(const char * c) {
+	if (!logfuncs)
+		goto end;
 	while (listBox1->Items->Count > 100)
 		listBox1->Items->RemoveAt(listBox1->Items->Count - 1);
 	listBox1->Items->Insert(0, gcnew String(c));
+	end:
 	delete [] c;
 }
 System::Void Home::checkBox2_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {

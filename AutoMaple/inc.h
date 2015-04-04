@@ -23,9 +23,9 @@
 
 //#define WIN
 
-/*#ifndef _M_CEE
+#ifndef _M_CEE
 	#include <atomic>
-#endif*/
+#endif
 
 using namespace std;
 
@@ -109,8 +109,6 @@ using namespace std;
 extern lua_State* L;
 extern HMODULE mod;
 extern HANDLE hThread;
-extern volatile bool quit;
-extern volatile bool logfuncs;
 
 //macros
 #define jmp(frm, to) (int)(((int)(to) - (int)(frm)) - 5)

@@ -10,14 +10,14 @@ int32_t mX, mY;
 int32_t ktX, ktY;
 int32_t ptX, ptY;
 
-volatile uint8_t frameDone;
+atomic<uint8_t> frameDone;
 
 uint32_t fRet;
 uint32_t fOesi; //frame cave's original esi
 uint32_t sOeax; //used by SP to store eax
 uint32_t mOeax;
 
-volatile uint8_t interrupt;
+atomic<uint8_t> interrupt;
 
 #define kLen 0x100
 #define KEY_UP 0
@@ -27,7 +27,7 @@ volatile uint8_t interrupt;
 #define KEY_SPAMMING 4
 #define KEY_NOT_HOLDING 5
 #define KEY_NOT_SPAMMING 6
-volatile uint8_t keyStates[kLen];
+atomic<uint8_t> keyStates[kLen];
 
 strmap(double) Char;
 uint32_t MapID;
@@ -35,17 +35,17 @@ uint32_t MapID;
 int32_t MobCount;
 POINT MobClosest;
 arrpair(POINT *) Mobs;
-volatile uint8_t RefreshMobs;
+atomic<uint8_t> RefreshMobs;
 
 arrpair(RECT *) Ropes;
 RECT Map;
-volatile uint8_t RefreshRopes;
+atomic<uint8_t> RefreshRopes;
 
 arrpair(strmap(int32_t) *) Portals;
-volatile uint8_t RefreshPortals;
+atomic<uint8_t> RefreshPortals;
 
 arrpair(strmap(int32_t) *) Inventory[5];
-volatile uint8_t RefreshInventory;
+atomic<uint8_t> RefreshInventory;
 
 int32_t Xoff;
 int32_t MoveDelay;

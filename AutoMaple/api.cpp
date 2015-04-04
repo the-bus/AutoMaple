@@ -1,7 +1,7 @@
 #include "inc.h"
 
 /* the Lua interpreter */
-volatile bool quit;
+atomic<bool> quit;
 lua_State* L = NULL;
 
 void KeyPressNoHook(int32_t key)
@@ -80,8 +80,6 @@ int default_index(lua_State *L) {
 }
 
 void log(const char * func, int len) {
-	if (!logfuncs)
-		return;
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
 	lua_getinfo(L, "l", &ar);

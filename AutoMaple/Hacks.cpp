@@ -116,7 +116,7 @@ void Hacks::KeySpam(int32_t k) {
 		Sleep(POLL);
 }
 void Hacks::KeyUnSpam(int32_t k) {
-	keyStates[k] = 0;
+	keyStates[k] = KEY_UP;
 }
 void Hacks::KeyPress(int32_t k)
 {
@@ -635,24 +635,27 @@ void SendKeys() {
 		keyStates[HPKey] = KEY_PRESSING;
 	if (MPMin > 0 && Char["hp"] <= MPMin)
 		keyStates[MPKey] = KEY_PRESSING;
+	uint8_t temp;
 	for (uint32_t i = 0; i < kLen; i++) {
 		if (keyStates[i] == KEY_HOLDING || keyStates[i] == KEY_NOT_HOLDING) {
 			SendKey(i, MS_DOWN);
-			keyStates[i] = KEY_HOLDING;
+			temp = KEY_NOT_HOLDING;
+			keyStates[i].compare_exchange_strong(temp, KEY_HOLDING);
 		}
 		else if (keyStates[i] == KEY_RELEASING) {
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
-			keyStates[i] = 0;
+			temp = KEY_RELEASING;
+			keyStates[i].compare_exchange_strong(temp, KEY_UP);
 		}
 		else if (keyStates[i] == KEY_PRESSING || keyStates[i] == KEY_SPAMMING || keyStates[i] == KEY_NOT_SPAMMING) {
 			SendKey(i, MS_DOWN);
 			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
-			if (keyStates[i] == KEY_PRESSING)
-				keyStates[i] = KEY_UP;
-			if (keyStates[i] == KEY_NOT_SPAMMING)
-				keyStates[i] = KEY_SPAMMING;
+			temp = KEY_PRESSING;
+			keyStates[i].compare_exchange_strong(temp, KEY_UP);
+			temp = KEY_NOT_SPAMMING;
+			keyStates[i].compare_exchange_strong(temp, KEY_SPAMMING);
 		}
 	}
 }

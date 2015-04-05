@@ -58,7 +58,8 @@ public:
 		also has the attackCount
 		and time until breath in milliseconds as breath 
 		mp and hp
-		exp as a decimal percentage value */
+		exp as a decimal percentage value
+		level */
 	static arrpair(POINT *) GetMobs(); //returns a table of mobs as points
 	static arrpair(RECT *) GetRopes(); //returns a table of ropes as rectangles
 	static RECT GetMap(); //returns the bounding box of the map as a rectangle

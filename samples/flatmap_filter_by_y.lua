@@ -6,7 +6,7 @@ function GetMobX()
 		local charX = maple.GetChar().x
 		local charY = maple.GetChar().y
 		local mobs = maple.GetMobs()
-		for k, mob in pairs(mobs) do
+		for _, mob in pairs(mobs) do
 			diffY = math.abs(mob.y - charY)
 			if diffY < 30 then
 				diffX = math.abs(mob.x - charX)

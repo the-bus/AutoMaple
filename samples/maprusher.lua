@@ -7,11 +7,11 @@ function string:split( inSplitPattern, outResults )
 	outResults = { }
 	end
 	local theStart = 1
-	local theSplitStart, theSplitEnd = string.find( self, inSplitPattern, theStart )
+	local theSplitStart, theSplitEnd = string.find( self, inSplitPattern, theStart, true )
 	while theSplitStart do
 		table.insert( outResults, string.sub( self, theStart, theSplitStart-1 ) )
 		theStart = theSplitEnd + 1
-		theSplitStart, theSplitEnd = string.find( self, inSplitPattern, theStart )
+		theSplitStart, theSplitEnd = string.find( self, inSplitPattern, theStart, true )
 	end
 	table.insert( outResults, string.sub( self, theStart ) )
 	return outResults
@@ -27,7 +27,7 @@ function maps:readFromFile()
 		node.name = a1[3]
 		node.portals = {}
 		for _, portal in pairs(a2) do
-			local a3 = string.split(portal, "%^")
+			local a3 = string.split(portal, "^")
 			table.insert(node, tonumber(a3[1]))
 			table.insert(node.portals, {x=tonumber(a3[2]), y=tonumber(a3[3])})
 		end
@@ -57,8 +57,9 @@ function maps:getPortal(startNum, endNum)
 end
 
 function maps:getIDFromName(name)
+	name = name:lower()
 	for _, map in pairs(maps.nodes) do
-		if map.name == name then
+		if map.name:lower():find(name, 1, true) then
 			return map.id
 		end
 	end
@@ -103,4 +104,4 @@ function rush(endID, yOff, finalX, finalY)
 	return true
 end
 
-rush(maps:getIDFromName("Zipangu: Mushroom Shrine"), 40)
+rush(maps:getIDFromName("mySterIous paTh 3"), 40)

@@ -1,6 +1,6 @@
 function GetMobX()
+	local closestX = 0
 	repeat
-		local closestX = 0
 		local count = 0
 		local dist = 9999999
 		local charX = maple.GetChar().x
@@ -43,5 +43,6 @@ maple.HookMove()
 maple.SetMoveDelay(300)
 while true do
 	MoveToMob()
+	maple.Wait(300)
 	AttackWait()
 end

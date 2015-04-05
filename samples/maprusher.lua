@@ -83,7 +83,7 @@ function rushPath(path, yOff, finalX, finalY)
 		goThroughPortal()
 	end
 	if finalX and finalY then
-		maple.SetSP(finalX, finalY)
+		maple.SetSP(finalX, finalY - yOff)
 		goThroughPortal()
 		maple.UnHookSP()
 	else

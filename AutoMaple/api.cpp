@@ -4,6 +4,13 @@
 atomic<bool> quit;
 lua_State* L = NULL;
 
+void StackLog(const char * c) {
+	uint32_t sz = strlen(c) + 1;
+	char * heap = new char[sz];
+	strcpy_s(heap, sz, c);
+	Log(heap);
+}
+
 void KeyPressNoHook(int32_t key)
 {
 	HWND ms = GetMShwnd();
@@ -117,7 +124,7 @@ void arr2table(T * a, void (f)(T), size_t len) {
 	lua_createtable(L, len, 0);
 	for (uint32_t i = 0; i < len; i++) {
 		f(a[i]);
-		lua_rawseti(L, -2, i);
+		lua_rawseti(L, -2, i + 1);
 	}
 	setindexmetatable();
 }
@@ -170,8 +177,101 @@ void Inventory(arrpair(strmap(int32_t) *) * val) {
 
 ///////////////////////////////////////
 
+typedef int vertex_t;
+typedef double weight_t;
+
+const weight_t max_weight = std::numeric_limits<double>::infinity();
+
+struct neighbor {
+	vertex_t target;
+	weight_t weight;
+	neighbor(vertex_t arg_target, weight_t arg_weight)
+		: target(arg_target), weight(arg_weight) { }
+};
+
+typedef std::vector<std::vector<neighbor> > adjacency_list_t;
+
+
+void DijkstraComputePaths(vertex_t source,
+	const adjacency_list_t &adjacency_list,
+	std::vector<weight_t> &min_distance,
+	std::vector<vertex_t> &previous)
+{
+	int n = adjacency_list.size();
+	min_distance.clear();
+	min_distance.resize(n, max_weight);
+	min_distance[source] = 0;
+	previous.clear();
+	previous.resize(n, -1);
+	std::set<std::pair<weight_t, vertex_t> > vertex_queue;
+	vertex_queue.insert(std::make_pair(min_distance[source], source));
+
+	while (!vertex_queue.empty())
+	{
+		weight_t dist = vertex_queue.begin()->first;
+		vertex_t u = vertex_queue.begin()->second;
+		vertex_queue.erase(vertex_queue.begin());
+
+		// Visit each edge exiting u
+		const std::vector<neighbor> &neighbors = adjacency_list[u];
+		for (std::vector<neighbor>::const_iterator neighbor_iter = neighbors.begin();
+			neighbor_iter != neighbors.end();
+			neighbor_iter++)
+		{
+			vertex_t v = neighbor_iter->target;
+			weight_t weight = neighbor_iter->weight;
+			weight_t distance_through_u = dist + weight;
+			if (distance_through_u < min_distance[v]) {
+				vertex_queue.erase(std::make_pair(min_distance[v], v));
+
+				min_distance[v] = distance_through_u;
+				previous[v] = u;
+				vertex_queue.insert(std::make_pair(min_distance[v], v));
+
+			}
+
+		}
+	}
+}
+
+std::list<vertex_t> DijkstraGetShortestPathTo(
+	vertex_t vertex, const std::vector<vertex_t> &previous)
+{
+	std::list<vertex_t> path;
+	for (; vertex != -1; vertex = previous[vertex])
+		path.push_front(vertex);
+	return path;
+}
+
+void GetPath(int32_t start, int32_t end) {
+	auto len = luaL_len(L, 1);
+	std::vector<weight_t> min_distance;
+	std::vector<vertex_t> previous;
+	adjacency_list_t adjancency_list(len);
+	for (int32_t i = 1; i <= len; i++) {
+		lua_rawgeti(L, 1, i);
+		int len2 = luaL_len(L, -1);
+		for (int j = 1; j <= len2; j++) {
+			lua_rawgeti(L, -1, j);
+			int n = lua_tointeger(L, -1);
+			if (n > 0)
+				adjancency_list[i - 1].push_back(neighbor(n - 1, 1));
+			lua_pop(L, 1);
+		}
+		lua_pop(L, 1);
+	}
+
+	DijkstraComputePaths(start - 1, adjancency_list, min_distance, previous);
+	list<vertex_t> path = DijkstraGetShortestPathTo(end - 1, previous);
+	vector<int> ret;
+	for (auto a : path) {
+		ret.push_back(a + 1);
+	}
+	arr2table(&ret[0], push, ret.size());
+}
+
 static const luaL_Reg mapleLib[] = {
-	
+
 #undef space
 #define space Hacks
 	samewrap(KeyDown, integer(1))
@@ -239,14 +339,18 @@ static const luaL_Reg mapleLib[] = {
 #define space 
 	samewrap(Sleep, integer(1))
 	wrap(Sleep, "Wait", integer(1))
-	
+
 	samewrap(KeyPressNoHook, integer(1))
 	samewrap(MessageInt, integer(1))
 	samewrap(MessageNum, number(1))
 	samewrap(Message, lua_tolstring(L, 1, NULL))
-	samewrap(Log, lua_tolstring(L, 1, NULL))
+	wrap(StackLog, "Log", lua_tolstring(L, 1, NULL))
 
-	{ NULL, NULL }
+	rawsamewrap(GetPath, ;, return 1;, integer(2), integer(3))
+
+	{
+		NULL, NULL
+	}
 };
 
 ///////////////////////////////////////
@@ -299,7 +403,8 @@ void initLua(const char * buf) {
 			// get the top of the stack as the error and pop it off
 			Message(lua_tostring(L, lua_gettop(L)));
 			lua_pop(L, 1);
-		} else {
+		}
+		else {
 			Message("Unknown error");
 		}
 	}

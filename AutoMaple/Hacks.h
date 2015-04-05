@@ -67,11 +67,11 @@ public:
 
 	static arrpair(strmap(int32_t) *) * GetInventory();
 		/* returns a 2D array where the first array has inventory tabs
-		0 - eqp
-		1 - use
-		2 - setup
-		3 - etc
-		4 - cash
+		1 - eqp
+		2 - use
+		3 - setup
+		4 - etc
+		5 - cash
 		the inner array is the item(s) at a slot (left to right, then top to bottom)
 		every item(s) has an id and quantity */
 	
@@ -122,5 +122,5 @@ public:
 	/* if you call a function that returns a rect(angle), it will have a table (aka array/list) with 2 points
 	the first point in a rectangle is the bottom left point
 	the second point in a rectangle is the top right point
-	bottom y value of the first rope example: maple.GetRopes()[0][0].y */
+	bottom y value of the first rope example: maple.GetRopes()[1][1].y */
 };

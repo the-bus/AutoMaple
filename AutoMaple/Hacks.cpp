@@ -200,8 +200,11 @@ void Hacks::SetSP(int32_t x, int32_t y) {
 	sX = x;
 	sY = y;
 }
+typedef int(__fastcall* lpfnCWvsContext__GetCharacterLevel)(LPVOID lpvClass, LPVOID lpvEDX);
+lpfnCWvsContext__GetCharacterLevel CWvsContext__GetCharacterLevel = (lpfnCWvsContext__GetCharacterLevel)0x005B4E30; //B9 ? ? ? ? E9 ? ? ? ? CC CC CC CC CC CC 83 3D
 void FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
+	Char["level"] = CWvsContext__GetCharacterLevel((void*)0x01E49A68, NULL);
 	Char["x"] = round(
 		Deref<double>(
 			(Vec + VecXOff),

@@ -76,14 +76,19 @@ function goThroughPortal()
 end
 
 function rush(endID, yOff, finalX, finalY)
-	local path = maps:getPath(maple.GetMapID(), endID)
+	local oMapID = maple.GetMapID()
+	if endID == oMapID then
+		return true
+	end
+	local path = maps:getPath(oMapID, endID)
+	if #path == 0 then
+		return false
+	end
 	maple.HookSP()
+	local first = maps:getPortal(path[1], path[2])
+	maple.Teleport(first.x, first.y - yOff)
 	for k = 2, #path - 1 do
 		local portal = maps:getPortal(path[k], path[k+1])
-		if k == 2 then
-			local previous = maps:getPortal(path[k-1], path[k])
-			maple.Teleport(previous.x, previous.y - yOff)
-		end
 		maple.SetSP(portal.x, portal.y - yOff)
 		goThroughPortal()
 	end
@@ -95,6 +100,7 @@ function rush(endID, yOff, finalX, finalY)
 		maple.UnHookSP()
 		goThroughPortal()
 	end
+	return true
 end
 
 rush(maps:getIDFromName("Zipangu: Mushroom Shrine"), 40)

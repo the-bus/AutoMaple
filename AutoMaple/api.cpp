@@ -77,7 +77,7 @@ int index(lua_State *L, const char * c) {
 	strcat_s(msg, sz, ln);
 	Message(msg);
 end:
-	delete msg;
+	delete [] msg;
 	quit = true;
 	return 0;
 }

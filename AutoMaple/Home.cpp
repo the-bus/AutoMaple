@@ -15,8 +15,6 @@ void GUIWork()
 	Application::SetCompatibleTextRenderingDefault(false);
 	ManagedGlobals::myHome = gcnew Home;
 	Application::Run(ManagedGlobals::myHome);
-	delete ManagedGlobals::myHome;
-	delete ManagedGlobals::context;
 	Application::Exit();
 }
 void Main(void)
@@ -72,7 +70,7 @@ System::Void Home::timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
 		SetWindowPos(my, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 		GetWindowRect(ms, &rect);
 		if (rect.left != old.left || rect.top != old.top) {
-			Point * p = new Point();
+			Point ^p = gcnew Point();
 			p->X = rect.left - this->Size.Width;
 			p->Y = rect.top;
 			this->Location = *p;

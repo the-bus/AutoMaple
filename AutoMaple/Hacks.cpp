@@ -417,13 +417,12 @@ DoFuncFrameWrap(Teleport,
 void FetchInventory() {
 	if (RefreshInventory == 0)
 		return;
-	for (auto tab : Inventory)
-		delete [] tab.first;
 	vector<maple::item*> tabs[5];
 	get_inv(tabs);
 	for (uint32_t i = 0; i < 5; i++) {
 		auto tab = tabs[i];
 		int j = 0;
+		delete Inventory[i].first;
 		Inventory[i].first = new strmap(int32_t)[tab.size()];
 		for (auto item : tab) {
 			//Inventory[i].first[j].insert(make_pair("index", item->index));

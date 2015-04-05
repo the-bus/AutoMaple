@@ -76,18 +76,7 @@ function goThroughPortal()
 	maple.DisableAutoPortal()
 end
 
-function rush(endID, yOff, finalX, finalY)
-	local oMapID = maple.GetMapID()
-	if endID == oMapID then
-		return true
-	end
-	local path = maps:getPath(oMapID, endID)
-	if #path == 0 then
-		return false
-	end
-	maple.HookSP()
-	local first = maps:getPortal(path[1], path[2])
-	maple.Teleport(first.x, first.y - yOff)
+function rushPath(path, yOff, finalX, finalY)
 	for k = 2, #path - 1 do
 		local portal = maps:getPortal(path[k], path[k+1])
 		maple.SetSP(portal.x, portal.y - yOff)
@@ -101,6 +90,33 @@ function rush(endID, yOff, finalX, finalY)
 		maple.UnHookSP()
 		goThroughPortal()
 	end
+end
+
+function rush(endID, yOff, finalX, finalY)
+	local oMapID = maple.GetMapID()
+	if endID == oMapID then
+		return true
+	end
+	local path = maps:getPath(oMapID, endID)
+	if #path == 0 then
+		return false
+	end
+	maple.HookSP()
+	local first = maps:getPortal(path[1], path[2])
+
+	--maple.Teleport(first.x, first.y - yOff)
+
+	maple.SetSP(first.x, first.y - yOff)
+	maple.SendPacket("5A 00 ?? ?? ?? 00 00")
+	while maple.GetMapID() ~= 0 do
+		maple.Wait(100)
+	end
+	maple.SendPacket("55 00")
+	while maple.GetChar().x ~= first.x do
+		maple.Wait(100)
+	end
+	
+	rushPath(path, yOff, finalX, finalY)
 	return true
 end
 

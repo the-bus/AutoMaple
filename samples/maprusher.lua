@@ -92,6 +92,24 @@ function rushPath(path, yOff, finalX, finalY)
 	end
 end
 
+function enterExitCS()
+	maple.WaitForBreath()
+	maple.Wait(1000)
+	maple.SendPacket("5A 00 ?? ?? ?? 00 00")
+	while maple.GetMapID() ~= 0 do
+		maple.Wait(100)
+	end
+	maple.SendPacket("55 00")
+end
+
+function teleCS(x, y)
+	maple.SetSP(x, y)
+	enterExitCS()
+	while maple.GetChar().x ~= x do
+		maple.Wait(100)
+	end
+end
+
 function rush(endID, yOff, finalX, finalY)
 	local oMapID = maple.GetMapID()
 	if endID == oMapID then
@@ -106,15 +124,7 @@ function rush(endID, yOff, finalX, finalY)
 
 	--maple.Teleport(first.x, first.y - yOff)
 
-	maple.SetSP(first.x, first.y - yOff)
-	maple.SendPacket("5A 00 ?? ?? ?? 00 00")
-	while maple.GetMapID() ~= 0 do
-		maple.Wait(100)
-	end
-	maple.SendPacket("55 00")
-	while maple.GetChar().x ~= first.x do
-		maple.Wait(100)
-	end
+	teleCS(first.x, first.y - yOff)
 	
 	rushPath(path, yOff, finalX, finalY)
 	return true

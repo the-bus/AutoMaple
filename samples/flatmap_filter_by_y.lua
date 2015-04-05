@@ -1,11 +1,11 @@
 function GetMobX()
 	repeat
-		closestX = 0
-		count = 0
-		dist = 9999999
-		charX = maple.GetChar().x
-		charY = maple.GetChar().y
-		mobs = maple.GetMobs()
+		local closestX = 0
+		local count = 0
+		local dist = 9999999
+		local charX = maple.GetChar().x
+		local charY = maple.GetChar().y
+		local mobs = maple.GetMobs()
 		for k, mob in pairs(mobs) do
 			diffY = math.abs(mob.y - charY)
 			if diffY < 30 then
@@ -23,9 +23,9 @@ end
 
 function MoveToMob()
 	while true do
-		mobX = GetMobX()
-		charX = maple.GetChar().x
-		diffX = math.abs(mobX - charX)
+		local mobX = GetMobX()
+		local charX = maple.GetChar().x
+		local diffX = math.abs(mobX - charX)
 		if diffX < 50 then
 			maple.SetMove(0, 0)
 			break

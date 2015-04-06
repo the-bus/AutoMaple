@@ -116,18 +116,20 @@ function rush(endID, yOff, finalX, finalY)
 		return true
 	end
 	local path = maps:getPath(oMapID, endID)
-	if #path == 0 then
+	if #path < 2 then
 		return false
 	end
-	maple.HookSP()
 	local first = maps:getPortal(path[1], path[2])
 
-	--maple.Teleport(first.x, first.y - yOff)
-
-	teleCS(first.x, first.y - yOff)
+	local char = maple.GetChar()
+	maple.HookSP()
+	if char.x ~= first.x or char.y ~= first.y then
+		--maple.Teleport(first.x, first.y - yOff)
+		teleCS(first.x, first.y - yOff)
+	end
 	
 	rushPath(path, yOff, finalX, finalY)
 	return true
 end
 
-rush(maps:getIDFromName("mySterIous paTh 3"), 40)
+--rush(maps:getIDFromName("mySterIous paTh 3"), 40)

@@ -42,17 +42,15 @@ void cleanup() {
 	lua_close(L);
 	L = NULL;
 	quit = false;
+#ifndef WIN
+	Hacks::Reset();
+#endif
 }
-void cleanwait() {
+void clean() {
 	if (quit || L == NULL)
 		return;
 	quit = true;
 	Hacks::Interrupt();
-	while (quit)
-		Sleep(0);
-#ifndef WIN
-	Hacks::Reset();
-#endif
 }
 
 int index(lua_State *L, const char * c) {
@@ -381,7 +379,9 @@ void LineHookFunc(lua_State *L, lua_Debug *ar)
 void initLua(const char * buf) {
 	if (quit)
 		return;
-	cleanwait();
+	clean();
+	while (quit)
+		Sleep(50);
 
 	/* initialize Lua */
 	L = luaL_newstate();

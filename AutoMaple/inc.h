@@ -145,4 +145,4 @@ T DerefOff(uint64_t addr, int64_t off, T bad) {
 
 //etc
 void initLua(const char * buf);
-void cleanwait();
+void clean();

@@ -41,6 +41,12 @@ public:
 	static void Teleport(int32_t x, int32_t y); //may not be stable
 	static void KamiTeleport(int32_t x, int32_t y); //may not be stable
 
+	static void HookItemFilter();
+	static void UnHookItemFilter();
+	static void SetItemFilterList(uint32_t * list); //takes in an array of item ids
+	static void SetItemFilterMinimumMesos(int32_t min);
+	static void SetItemFilterMode(int32_t mode); //0 - only accept items in list, 1 - reject items in list
+
 	//spawn point control:
 	static void HookSP();
 	static void UnHookSP();

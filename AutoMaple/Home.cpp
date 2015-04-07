@@ -126,7 +126,7 @@ System::Void Home::Log(const char * c) {
 		listBox1->Items->RemoveAt(listBox1->Items->Count - 1);
 	listBox1->Items->Insert(0, gcnew String(c));
 	end:
-	delete [] c;
+	delete[] c;
 }
 System::Void Home::checkBox2_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
 	logfuncs = checkBox2->Checked;

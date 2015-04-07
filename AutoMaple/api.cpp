@@ -77,7 +77,7 @@ int index(lua_State *L, const char * c) {
 	strcat_s(msg, sz, ln);
 	Message(msg);
 end:
-	delete [] msg;
+	delete[] msg;
 	quit = true;
 	return 0;
 }
@@ -270,6 +270,18 @@ void GetPath(int32_t start, int32_t end) {
 	arr2table(&ret[0], push, ret.size());
 }
 
+void SetItemFilterList() {
+	auto len = luaL_len(L, 1);
+	uint32_t * list = new uint32_t[len + 1];
+	for (int32_t i = 1; i <= len; i++) {
+		lua_rawgeti(L, 1, i);
+		list[i - 1] = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+	}
+	list[len] = 0;
+	Hacks::SetItemFilterList(list);
+}
+
 static const luaL_Reg mapleLib[] = {
 
 #undef space
@@ -335,6 +347,11 @@ static const luaL_Reg mapleLib[] = {
 
 	samewrap(SetTimeout, integer(1))
 
+	samewrap(HookItemFilter)
+	samewrap(UnHookItemFilter)
+	samewrap(SetItemFilterMinimumMesos, integer(1))
+	samewrap(SetItemFilterMode, integer(1))
+	
 #undef space
 #define space 
 	samewrap(Sleep, integer(1))
@@ -347,6 +364,7 @@ static const luaL_Reg mapleLib[] = {
 	wrap(StackLog, "Log", lua_tolstring(L, 1, NULL))
 
 	rawsamewrap(GetPath, ;, return 1;, integer(2), integer(3))
+	rawsamewrap(SetItemFilterList, ;, return 1;)
 
 	{
 		NULL, NULL

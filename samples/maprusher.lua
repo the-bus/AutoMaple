@@ -102,6 +102,11 @@ function enterExitCS()
 	maple.SendPacket("55 00")
 end
 
+function charIsAt(x, y)
+	local char = maple.GetChar()
+	return char.x == x and char.y == y
+end
+
 function teleCS(x, y)
 	maple.SetSP(x, y)
 	enterExitCS()
@@ -113,6 +118,11 @@ end
 function rush(endID, yOff, finalX, finalY)
 	local oMapID = maple.GetMapID()
 	if endID == oMapID then
+		if finalX and finalY and not charIsAt(finalX, finalY) then
+			maple.HookSP()
+			teleCS(finalX, finalY - yOff)
+			maple.UnHookSP()
+		end
 		return true
 	end
 	local path = maps:getPath(oMapID, endID)
@@ -121,13 +131,12 @@ function rush(endID, yOff, finalX, finalY)
 	end
 	local first = maps:getPortal(path[1], path[2])
 
-	local char = maple.GetChar()
 	maple.HookSP()
-	if char.x ~= first.x or char.y ~= first.y then
+	if not charIsAt(first.x, first.y) then
 		--maple.Teleport(first.x, first.y - yOff)
 		teleCS(first.x, first.y - yOff)
 	end
-	
+
 	rushPath(path, yOff, finalX, finalY)
 	return true
 end

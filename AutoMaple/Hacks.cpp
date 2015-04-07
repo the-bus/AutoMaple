@@ -4,6 +4,7 @@
 #define POLL 50
 
 CRITICAL_SECTION frame;
+CRITICAL_SECTION itemfilter;
 
 int32_t sX, sY;
 int32_t mX, mY;
@@ -64,6 +65,10 @@ byte * PortalSpace[128] = { 0 };
 //uint32_t ptRet;
 
 int32_t ItemCount;
+
+uint32_t * ItemFilterList = new uint32_t[1] { 0 };
+int32_t ItemFilterMode;
+int32_t ItemFilterMesos;
 
 Concurrency::concurrent_queue<void(*)()> functions;
 
@@ -243,7 +248,7 @@ void FetchMob() {
 		goto end;
 	mob -= 0x10; // first mob
 	if (RefreshMobs != 0) {
-		delete [] Mobs.first;
+		delete[] Mobs.first;
 		Mobs.first = new POINT[MobCount];
 	}
 	uint32_t i = 0;
@@ -289,7 +294,7 @@ boolean InBoundsY(int32_t y) {
 void FetchRopes() {
 	auto Rope = DerefOff<uint32_t>(MapBase, RopeOff, 0);
 	auto RopeCount = Deref<uint32_t>(Rope - 4, 0) - 1;
-	delete [] Ropes.first;
+	delete[] Ropes.first;
 	Ropes.first = new RECT[RopeCount];
 	//vector<RECT> rects;
 	Rope += 0x2C;
@@ -316,7 +321,7 @@ void FetchRopes() {
 void FetchPortals(void(*f)(uint32_t, uint32_t)) {
 	auto Portal = DerefOff<uint32_t>(PortalBase, PortalsOff, 0);
 	auto PortalCount = Deref<uint32_t>(Portal + PortalsCountOff, 0);
-	delete [] Portals.first;
+	delete[] Portals.first;
 	Portals.first = new strmap(int32_t)[PortalCount];
 	Portals.second = PortalCount;
 	Portal += PortalsFirst;
@@ -422,7 +427,7 @@ void FetchInventory() {
 	for (uint32_t i = 0; i < 5; i++) {
 		auto tab = tabs[i];
 		int j = 0;
-		delete Inventory[i].first;
+		delete[] Inventory[i].first;
 		Inventory[i].first = new strmap(int32_t)[tab.size()];
 		for (auto item : tab) {
 			//Inventory[i].first[j].insert(make_pair("index", item->index));
@@ -681,6 +686,8 @@ __declspec(naked) void FrameCave() {
 void Hacks::HookFrame() {
 	DeleteCriticalSection(&frame);
 	InitializeCriticalSection(&frame);
+	DeleteCriticalSection(&itemfilter);
+	InitializeCriticalSection(&itemfilter);
 	frameDone = 0;
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
 	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
@@ -705,10 +712,93 @@ bool Hacks::SendPacket(const char * packet) {
 		return false;
 	return true;
 }
+__declspec(naked) void ItemFilterCave()
+{
+	__asm pushad
+	EnterCriticalSection(&itemfilter);
+	__asm popad
+	__asm
+	{
+		push edx
+		mov edx, [ItemFilterMesos]
+		cmp eax, edx
+		jl FilterMesos
+		mov edx, dword ptr[ItemFilterList]
+		jmp RejectOrAccept
+
+		FilterMesos :
+		mov[esi + 0x40], 0
+		jmp End
+
+		RejectOrAccept :
+		cmp byte ptr[ItemFilterMode], 0
+		je AcceptFilter
+		cmp byte ptr[ItemFilterMode], 1
+		je RejectFilter
+
+		AcceptFilter :
+		cmp eax, [edx]
+		je End
+		cmp dword ptr[edx], 0
+		je Ignore
+		add edx, 4
+		jmp AcceptFilter
+
+		RejectFilter :
+		cmp eax, [edx]
+		je Ignore
+		cmp dword ptr[edx], 0
+		je End
+		add edx, 4
+		jmp RejectFilter
+
+		Ignore :
+		cmp eax, 60000d // added this code otherwise mesos is dropped but not shown in accept mode
+		jle End
+		mov eax, 0
+
+		End :
+	}
+	__asm pushad
+	LeaveCriticalSection(&itemfilter);
+	__asm popad
+	__asm {
+		pop edx
+		mov ecx, ebx  // org code
+		mov[esi + 0x44], eax // org code
+		push[ItemFilter + 5]
+		ret
+	}
+}
+void DoHookItemFilter() {
+	byte op = 0xE9;
+	Memory::Write((void*)ItemFilter, &op, 1);
+	uint32_t off = jmp(ItemFilter, ItemFilterCave);
+	Memory::Write((byte*)ItemFilter + 1, &off, 4);
+}
+DoFuncFrameWrap(HookItemFilter)
+void DoUnHookItemFilter() {
+	byte orig[] = { 0x8B, 0xCB, 0x89, 0x46, 0x44 };
+	Memory::Write((void*)ItemFilter, &orig, sizeof(orig));
+}
+DoFuncFrameWrap(UnHookItemFilter)
+void Hacks::SetItemFilterList(uint32_t * list) {
+	EnterCriticalSection(&itemfilter);
+	delete[] ItemFilterList;
+	ItemFilterList = list;
+	LeaveCriticalSection(&itemfilter);
+}
+void Hacks::SetItemFilterMinimumMesos(int32_t min) {
+	ItemFilterMesos = min;
+}
+void Hacks::SetItemFilterMode(int32_t mode) {
+	ItemFilterMode = mode;
+}
 void Hacks::Reset() {
 	DisableAutoPortal();
 	UnHookMove();
 	UnHookSP();
+	UnHookItemFilter();
 	HPMin = 0;
 	MPMin = 0;
 	ResetKeys();
@@ -719,5 +809,7 @@ void Hacks::Reset() {
 	Moved = 0;
 	timeout = 0;
 	interrupt = 0;
+	ItemFilterMode = 0;
+	ItemFilterMesos = 10;
 	//UnHookFrame();
 }

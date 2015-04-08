@@ -47,6 +47,9 @@
     <ClCompile Include="Inventory.cpp">
       <Filter>Inventory</Filter>
     </ClCompile>
+    <ClCompile Include="InputPopup.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Home.h">
@@ -84,6 +87,9 @@
     </ClInclude>
     <ClInclude Include="Inventory.h">
       <Filter>Inventory</Filter>
+    </ClInclude>
+    <ClInclude Include="InputPopup.h">
+      <Filter>Forms</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

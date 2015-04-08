@@ -1,4 +1,5 @@
 #include "Home.h"
+#include "InputPopup.h"
 #include "inc.h"
 #include <msclr/marshal.h>
 using namespace msclr::interop;
@@ -130,6 +131,12 @@ System::Void Home::Log(const char * c) {
 }
 System::Void Home::checkBox2_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
 	logfuncs = checkBox2->Checked;
+}
+const char * GetInput() {
+	auto a = gcnew InputPopup;
+	a->ShowDialog();
+	const char * ret = ManagedGlobals::context->marshal_as<const char*>(a->textBox1->Text);
+	return ret;
 }
 void DoLog(const char * c) {
 	ManagedGlobals::myHome->Log(c);

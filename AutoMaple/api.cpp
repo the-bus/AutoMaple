@@ -349,7 +349,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(UnHookItemFilter)
 	samewrap(SetItemFilterMinimumMesos, integer(1))
 	samewrap(SetItemFilterMode, integer(1))
-	
+
 #undef space
 #define space 
 	samewrap(Sleep, integer(1))
@@ -360,6 +360,7 @@ static const luaL_Reg mapleLib[] = {
 	samewrap(MessageNum, number(1))
 	samewrap(Message, lua_tolstring(L, 1, NULL))
 	wrap(StackLog, "Log", lua_tolstring(L, 1, NULL))
+	samewrapVal(GetInput, lua_pushstring(L, val); return 1;)
 
 	rawsamewrap(GetPath, ;, return 1;, integer(2), integer(3))
 	rawsamewrap(SetItemFilterList, ;, return 1;)

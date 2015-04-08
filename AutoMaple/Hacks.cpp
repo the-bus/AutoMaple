@@ -526,7 +526,7 @@ void Hacks::SetMove(int32_t dirX, int32_t dirY) {
 		mY = dirY;
 	Moved = 0;
 	while (Moved == 0)
-		Sleep(0);
+		Sleep(POLL);
 }
 void Hacks::MoveTowardsX(int32_t targetX) {
 	int32_t charX = GetChar()["x"];

@@ -646,18 +646,17 @@ void SendKeys() {
 	for (uint32_t i = 0; i < kLen; i++) {
 		if (keyStates[i] == KEY_HOLDING || keyStates[i] == KEY_NOT_HOLDING) {
 			SendKey(i, MS_DOWN);
+			SendKey(i, MS_PRESS);
 			temp = KEY_NOT_HOLDING;
 			keyStates[i].compare_exchange_strong(temp, KEY_HOLDING);
 		}
 		else if (keyStates[i] == KEY_RELEASING) {
-			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
 			temp = KEY_RELEASING;
 			keyStates[i].compare_exchange_strong(temp, KEY_UP);
 		}
 		else if (keyStates[i] == KEY_PRESSING || keyStates[i] == KEY_SPAMMING || keyStates[i] == KEY_NOT_SPAMMING) {
 			SendKey(i, MS_DOWN);
-			SendKey(i, MS_PRESS);
 			SendKey(i, MS_UP);
 			temp = KEY_PRESSING;
 			keyStates[i].compare_exchange_strong(temp, KEY_UP);

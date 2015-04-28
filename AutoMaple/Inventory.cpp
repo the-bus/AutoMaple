@@ -173,8 +173,8 @@ namespace maple
 void get_inv(vector<maple::item*> tabs[5])
 {
 	unsigned int CWvsContext = ServerBase; //8B 0D ? ? ? ? E8 ? ? ? ? 8B 86 ? ? ? ? 33 [in MOV]
-	unsigned int GetCharacterData = 0x004A2330; //51 8B 81 ? ? ? ? 56 8B 74 24 ? C7 44 24 ? 00 00 00 00 89 46 [1st Result]
-	unsigned int TSecType_GetData = 0x004CC3F0; //E8 ? ? ? ? 8B CE 8B F8 E8 ? ? ? ? 8B C8 8B [Any Result, in CALL]
+	unsigned int GetCharacterData = 0x004A22F0; //51 8B 81 ? ? ? ? 56 8B 74 24 ? C7 44 24 ? 00 00 00 00 89 46 [1st Result]
+	unsigned int TSecType_GetData = 0x004CC3B0; //E8 ? ? ? ? 8B CE 8B F8 E8 ? ? ? ? 8B C8 8B [Any Result, in CALL]
 
 
 	maple::inventory inventory(CWvsContext, GetCharacterData, TSecType_GetData);

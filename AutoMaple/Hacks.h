@@ -11,6 +11,7 @@ public:
 	static void HookFrame();
 	static void UnHookFrame();
 	static void Reset();
+	static void HookRecv();
 	static void Interrupt(); //stops timeoutWhiles
 
 	//in the lua api:
@@ -53,6 +54,9 @@ public:
 	static void SetSP(int32_t x, int32_t y); //spawn point must be hooked
 
 	static void WaitForBreath(); //waits for the character to regain breath, might want to include a delay after this
+
+	static bool WaitForRecv(uint32_t op);
+	static void SetBlockRecvList(uint32_t * list);
 
 	//getters:
 	static arrpair(strmap(int32_t) *) GetPortals();

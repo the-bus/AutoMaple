@@ -43,7 +43,7 @@ using namespace std;
 
 //constants
 #define ServerBase 0x01E26B10
-#define MobBase 0x01E2B1E4
+#define MobBase 0x01E312C4
 #define MobCountOff 0x00000010
 #define Mob1Off 0x00000028
 #define Mob2Off 0x00000004
@@ -52,26 +52,26 @@ using namespace std;
 #define MobXOff 0x00000058
 #define MobYOff (MobXOff + 4)
 #define MobDeathOff 0x00000580
-#define MyMapInfo 0x01E2B910
-#define MyMapIDOff 0x13e4
-#define AutoPortal 0x014E4F1A
-#define CharBase 0x01E26B14
-#define CharAttackCountOff 0x0000BF5C
+#define MyMapInfo 0x01E319F0
+#define MyMapIDOff 0x000013E4
+#define AutoPortal 0x12BD0B0E
+#define CharBase 0x01E2CBF4
+#define CharAttackCountOff 0x0000BF84
 #define CharBreathOff 0x000008B0
 #define CharVecOff 0x517C
 #define VecXOff 0xAC
 #define VecYOff (VecXOff + 8)
-#define MapBase 0x01E2B1EC
+#define MapBase 0x01E312CC
 #define MapLeftOff 0x0000001C
 #define MapTopOff (MapLeftOff + 4)
 #define MapRightOff (MapLeftOff + 8)
 #define MapBottomOff (MapLeftOff + 12)
 #define RopeOff 0xB4
-#define StatsBase 0x01E26B18
+#define StatsBase 0x01E2CBF8
 #define StatsHP 0x00002734
 #define StatsMP (StatsHP+4)
 #define StatsEXP 0x00002658
-#define PortalBase 0x1e2b6a0
+#define PortalBase 0x01E31780
 #define PortalsOff 4
 #define PortalsCountOff -4
 #define PortalsFirst 4
@@ -79,17 +79,17 @@ using namespace std;
 #define PortalXOff 0xC
 #define PortalYOff (PortalXOff + 4)
 #define PortalTMOff 0x1C
-#define ItemBase 0x01E2B890
+#define ItemBase 0x01E31970
 #define ItemCountOff 0x00000014
 //8B ? 89 ? ? E8 ? ? ? ? 8B ? 89 ? ? E8 ? ? ? ? 0F ? ? 89 ? ? 8B ? E8 ? ? ? ? 0F
-#define ItemFilter 0x006FC37D
+#define ItemFilter 0x006FC30D
 //6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
-#define SP (void*)0x01BFDE48
-#define SPOrig 0x015FF580
+#define SP (void*)0x01602C00
+#define SPOrig 0x01C03238
 //FF 15 ?? ?? ?? ?? 3B C7 0F 85 ?? ?? ?? ?? 8B 0D ?? ?? ?? ?? E8
-#define MoveDisable (void*)0x0161BDF9
+#define MoveDisable (void*)0x0161F479
 //89 4C 24 20 89 4C 24 1C 8B 82 A0 5F 00 00 3B C1 74 16 8D 44 24 1C 50 8D
-#define MoveJmp 0x0161BD92
+#define MoveJmp 0x0161F412
 
 #define MS_PRESS 0x00000000
 #define MS_DOWN  0x00000030

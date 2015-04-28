@@ -280,10 +280,24 @@ void SetItemFilterList() {
 	Hacks::SetItemFilterList(list);
 }
 
+void SetRecvBlockList() {
+	auto len = luaL_len(L, 1);
+	uint32_t * list = new uint32_t[len + 1];
+	for (int32_t i = 1; i <= len; i++) {
+		lua_rawgeti(L, 1, i);
+		list[i - 1] = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+	}
+	list[len] = 0;
+	Hacks::SetBlockRecvList(list);
+}
+
 static const luaL_Reg mapleLib[] = {
 
 #undef space
 #define space Hacks
+	samewrap(WaitForRecv, integer(1))
+
 	samewrap(KeyDown, integer(1))
 	samewrap(KeyUp, integer(1))
 	samewrap(KeyPress, integer(1))
@@ -365,6 +379,8 @@ static const luaL_Reg mapleLib[] = {
 	rawsamewrap(GetPath, ;, return 1;, integer(2), integer(3))
 	rawsamewrap(SetItemFilterList, ;, return 1;)
 
+	rawsamewrap(SetRecvBlockList, ;, return 1;)
+
 	{
 		NULL, NULL
 	}
@@ -383,6 +399,10 @@ void initLua(const char * buf) {
 	clean();
 	while (quit)
 		Sleep(50);
+
+#ifndef WIN
+	Hacks::Reset();
+#endif
 
 	/* initialize Lua */
 	L = luaL_newstate();

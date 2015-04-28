@@ -5,6 +5,7 @@
 
 CRITICAL_SECTION frame;
 CRITICAL_SECTION itemfilter;
+CRITICAL_SECTION recvblock;
 
 int32_t sX, sY;
 int32_t mX, mY;
@@ -69,6 +70,10 @@ int32_t ItemCount;
 uint32_t * ItemFilterList = new uint32_t[1] { 0 };
 int32_t ItemFilterMode;
 int32_t ItemFilterMesos;
+
+uint32_t * RecvBlock = new uint32_t[1] { 0 };
+uint32_t RecvWait = 0;
+volatile bool RecvDone;
 
 Concurrency::concurrent_queue<void(*)()> functions;
 
@@ -168,7 +173,7 @@ void Hacks::DisableAutoPortal() {
 }*/
 typedef void(__fastcall *pfnCVecCtrlUser__OnTeleport)(void *pthis, void *edx, void *, long x, long y);
 //8B ? 24 ? 8B ? ? 8B ? ? ? 8D ? ? 8B ? ? ? ? ? ? FF ? 85 C0 ? ? ? ? ? ? ? ? ? E8
-static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01600FE0;
+static pfnCVecCtrlUser__OnTeleport CVecCtrlUser__OnTeleport = (pfnCVecCtrlUser__OnTeleport)0x01604660;
 void DoKamiTeleport() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
 	CVecCtrlUser__OnTeleport((uint8_t *)Vec + 4, NULL, NULL, ktX, ktY);
@@ -186,7 +191,6 @@ __declspec(naked) void SPCave() {
 		mov [esp+0xC], eax
 
 		mov eax, sOeax
-		//6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 ? ? ? ? ? 53 55 56 57 A1 ? ? ? ? 33 ? 50 8D ? 24 ? ? ? ? 64 ? ? ? ? ? 8B ? 8B ? 24 ? ? ? ? 8B ? 24 ? ? ? ? 8B
 		push SPOrig
 		ret
 	}
@@ -206,10 +210,11 @@ void Hacks::SetSP(int32_t x, int32_t y) {
 	sY = y;
 }
 typedef int(__fastcall* lpfnCWvsContext__GetCharacterLevel)(LPVOID lpvClass, LPVOID lpvEDX);
-lpfnCWvsContext__GetCharacterLevel CWvsContext__GetCharacterLevel = (lpfnCWvsContext__GetCharacterLevel)0x005B4E30; //B9 ? ? ? ? E9 ? ? ? ? CC CC CC CC CC CC 83 3D
+//B9 ? ? ? ? E9 ? ? ? ? CC CC CC CC CC CC 83 3D
+lpfnCWvsContext__GetCharacterLevel CWvsContext__GetCharacterLevel = (lpfnCWvsContext__GetCharacterLevel)0x019F8180;
 void FetchChar() {
 	auto Vec = DerefOff<uint32_t>(CharBase, CharVecOff, 0);
-	Char["level"] = CWvsContext__GetCharacterLevel((void*)0x01E49A68, NULL);
+	Char["level"] = 0;//CWvsContext__GetCharacterLevel((void*)01E4FB68, NULL);
 	Char["x"] = round(
 		Deref<double>(
 			(Vec + VecXOff),
@@ -338,7 +343,8 @@ void FetchPortals(void(*f)(uint32_t, uint32_t)) {
 __declspec(naked) void FakePortal() {
 	__asm {
 		lea edi, [PortalSpace]
-		push 0x014DB229 // 8B ?? ?? 6A ?? 89 ?? ?? ?? 8B ?? ?? 68 ?? ?? ?? ?? 83 ?? ?? 6A ?? 50 51 8B ?? ?? ?? 89
+		// 8B ?? ?? 6A ?? 89 ?? ?? ?? 8B ?? ?? 68 ?? ?? ?? ?? 83 ?? ?? 6A ?? 50 51 8B ?? ?? ?? 89
+		push 0x014DE6B9
 		ret
 	}
 }
@@ -363,8 +369,9 @@ __declspec(naked) void RawTeleport() {
 		push 00
 		mov ecx, CharBase
 		mov ecx, [ecx]
-		mov eax, 0x014DADB0
-		call eax // CUserLocal__TryRegisterTeleport - addy on call E8 ? ? ? ? 85 ? 0F ? ? ? ? ? 8D ? ? ? 68 ? ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? 8B 00 6A 64
+		// CUserLocal__TryRegisterTeleport - addy on call E8 ? ? ? ? 85 ? 0F ? ? ? ? ? 8D ? ? ? 68 ? ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? 8B 00 6A 64
+		mov eax, 0x014E7AD1
+		call eax
 		jmp Ending
 		Ending:
 		popad
@@ -396,22 +403,22 @@ void DoTeleport() {
 	Memory::Write((byte*)0x0163CAE0 + 1, &i, 4);*/
 
 	b = 0xE9;
-	Memory::Write((void*)0x014DB213, &b, 1); // 83 ?? ?? 53 56 57 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 68 ?? ?? ?? ?? B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 33
+	Memory::Write((void*)0x1640100, &b, 1); // 83 ?? ?? 53 56 57 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 68 ?? ?? ?? ?? B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 33
 	i = jmp(0x014DB213, FakePortal);
-	Memory::Write((byte*)0x014DB213 + 1, &i, 4);
+	Memory::Write((byte*)0x1640100 + 1, &i, 4);
 	b = 0x90;
-	Memory::Write((byte*)0x014DB213 + 5, &b, 1);
+	Memory::Write((byte*)0x1640100 + 5, &b, 1);
 
 	b = 0xE8;
-	Memory::Write((byte*)0x014DB353, &b, 1); // E8 ?? ?? ?? ?? 8D ?? ?? ?? ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 83 ?? ?? ?? ?? ?? ?? ?? 0F
-	i = jmp(0x014DB353, BlockSend);
-	Memory::Write((byte*)0x014DB353 + 1, &i, 4);
+	Memory::Write((byte*)0x14DE7E3, &b, 1); // E8 ?? ?? ?? ?? 8D ?? ?? ?? ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 83 ?? ?? ?? ?? ?? ?? ?? 0F
+	i = jmp(0x13C08803, BlockSend);
+	Memory::Write((byte*)0x14DE7E3 + 1, &i, 4);
 
 	byte nops[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-	Memory::Write((void*)0x014DB05C, &nops, sizeof(nops)); //// 0F ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? 8D ?? ?? ?? ?? ?? ?? 52 89 ?? ?? ?? E8 ?? ?? ?? ?? 8B ?? ?? 8D
+	Memory::Write((void*)0x14DE4EC, &nops, sizeof(nops)); // 0F ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? 8D ?? ?? ?? ?? ?? ?? 52 89 ?? ?? ?? E8 ?? ?? ?? ?? 8B ?? ?? 8D
 
 	b = 0x74;
-	Memory::Write((void*)0x014DADF5, &b, 1);// 75 ?? 8B ?? ?? 8B ?? ?? 83 ?? ?? FF ?? 8B ?? 8B ?? 8B ?? ?? FF ?? 85 ?? 75 ?? 3B
+	Memory::Write((void*)0x14DE285, &b, 1); // 75 ?? 8B ?? ?? 8B ?? ?? 83 ?? ?? FF ?? 8B ?? 8B ?? 8B ?? ?? FF ?? 85 ?? 75 ?? 3B
 	
 	RawTeleport();
 }
@@ -507,9 +514,9 @@ void DoHookMove() {
 }
 DoFuncFrameWrap(HookMove)
 void DoUnHookMove() {
-	byte orig2[] = { 0x89, 0x7C, 0x24, 0x20, 0x89, 0x7C, 0x24, 0x1C };
+	byte orig2[] = { 0x89 ,0x7C ,0x24 ,0x20 ,0x89 ,0x7C ,0x24 ,0x1C };
 	Memory::Write((void*)MoveJmp, &orig2, 8);
-	byte orig[] = { 0xFF, 0x15, 0xC0, 0xB8, 0xE3, 0x01 };
+	byte orig[] = { 0xFF ,0x15 ,0xB0 ,0x19 ,0xE4 ,0x01 };
 	Memory::Write(MoveDisable, &orig, 6);
 }
 DoFuncFrameWrap(UnHookMove)
@@ -631,7 +638,7 @@ void SendKey(uint32_t VK, uint32_t mask) {
 		push Key // 2nd parameter: key code for CTRL
 		push VK // 1st parameter: Apparently unused parameter that seems to be related to the type of key that is being pressed. You can just set it to zero
 		// ? ? ? ? ? 85 ? 74 ? 8D ? ? 8B ? 8B ? FF ? C2 08 00
-		mov edx, 0x0163AB10
+		mov edx, 0x163E160
 		call edx // key press function
 		mov esi, fOesi
 		popad
@@ -682,11 +689,71 @@ __declspec(naked) void FrameCave() {
 		ret
 	}
 }
+bool Hacks::WaitForRecv(uint32_t op) {
+	RecvDone = false;
+	RecvWait = op;
+	bool ret;
+	timeoutWhile(!RecvDone)
+	return ret;
+}
+__declspec(naked) void RecvCave() {
+	__asm pushad
+	EnterCriticalSection(&recvblock);
+	__asm popad
+	__asm {
+		jmp BlockRecvHook
+
+		Found :
+		mov RecvDone, 1
+		jmp RecvCheckLoop
+
+		//Hook address: 007BEDC0
+		//8B ? 24 ? 3D ? ? ? ? 0F 8F ? ? ? ? 0F 84 ? ? ? ? 8D
+
+		BlockRecvHook :
+		mov eax, [esp + 0x04] //Original Opcode @ Hook address
+		and eax, 0x0FFFF
+		push edx
+		mov edx, RecvBlock
+
+		cmp eax, RecvWait
+		je Found
+
+		RecvCheckLoop :
+		cmp eax, [edx]
+		je BlockRecv
+		cmp[edx], 0x00
+		je End
+		add edx, 0x04
+		jmp RecvCheckLoop
+
+		BlockRecv :
+		xor eax, eax
+
+		End :
+	}
+	__asm pushad
+	LeaveCriticalSection(&recvblock);
+	__asm popad
+	__asm {
+		pop edx
+		cmp eax, 00000372 //Opcode below Hook address
+		push 0x007BF2AE //Address of jg below Hook address
+		ret
+	}
+}
+void DoHookRecv() {
+	uint32_t a = (uint32_t)RecvCave;
+	Memory::Write((void*)0x1AEFAE8, &a, 4); //4 Bytes scan Hook address [1st Result]
+}
+DoFuncFrameWrap(HookRecv);
 void Hacks::HookFrame() {
 	DeleteCriticalSection(&frame);
 	InitializeCriticalSection(&frame);
 	DeleteCriticalSection(&itemfilter);
 	InitializeCriticalSection(&itemfilter);
+	DeleteCriticalSection(&recvblock);
+	InitializeCriticalSection(&recvblock);
 	frameDone = 0;
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
 	byte* dispatchAddy = (byte*)((uint32_t)GetProcAddress(hMod, "DispatchMessageA") + 0x0);
@@ -697,6 +764,7 @@ void Hacks::HookFrame() {
 	Memory::Write(dispatchAddy - 4, &distance, 4);
 	byte backShortJump[] = { 0xEB, 0xF9 };
 	Memory::Write(dispatchAddy, &backShortJump, 2);
+	//HookRecv();
 }
 void Hacks::UnHookFrame() {
 	HINSTANCE hMod = GetModuleHandle("user32.dll");
@@ -777,10 +845,16 @@ void DoHookItemFilter() {
 }
 DoFuncFrameWrap(HookItemFilter)
 void DoUnHookItemFilter() {
-	byte orig[] = { 0x8B, 0xCB, 0x89, 0x46, 0x44 };
+	byte orig[] = { 0x8B ,0xCB ,0x89 ,0x46 ,0x44 };
 	Memory::Write((void*)ItemFilter, &orig, sizeof(orig));
 }
 DoFuncFrameWrap(UnHookItemFilter)
+void Hacks::SetBlockRecvList(uint32_t * list) {
+	EnterCriticalSection(&recvblock);
+	delete[] RecvBlock;
+	RecvBlock = list;
+	LeaveCriticalSection(&recvblock);
+}
 void Hacks::SetItemFilterList(uint32_t * list) {
 	EnterCriticalSection(&itemfilter);
 	delete[] ItemFilterList;

@@ -7,12 +7,12 @@
 
 const unsigned int MSLockAddy = 0x40B6A0;			// 53 56 8B 74 24 0C 8B D9 8B CE
 const unsigned int MSUnlockAddy = 0x402C30;			// 8B 01 83 40 04 FF 75 06
-const unsigned int innoHashAddy = 0x1742FA0;		// 51 8B 44 24 10 C7 04 24
-const unsigned int FlushSocketAddy = 0x6133B0;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
-const unsigned int MakeBufferListAddy = 0xBA8600;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
+const unsigned int innoHashAddy = 0x1746940;		// 51 8B 44 24 10 C7 04 24
+const unsigned int FlushSocketAddy = 0x613380;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
+const unsigned int MakeBufferListAddy = 0xBACB50;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
 
-const unsigned int CClientSocketPtr = 0x01E26B1C;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
-const unsigned int GameVersion = 160;
+const unsigned int CClientSocketPtr = 0x01E2CBFC;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
+const unsigned int GameVersion = 161;
 
 
 struct ZSocketBase
